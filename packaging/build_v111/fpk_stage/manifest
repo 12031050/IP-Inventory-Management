@@ -1,0 +1,14 @@
+appname = ipam
+version = 1.1.1
+display_name = IP台账管理
+desc = 面向飞牛 OS 的 IP 台账管理系统：端口服务稳定秒开，内置初始管理员与角色权限体系，绝不白屏，无虚假提权。
+platform = all
+source = thirdparty
+maintainer = 梦非常浪漫
+distributor = 梦非常浪漫
+desktop_uidir = ui
+desktop_applaunchname = ipam.main
+service_port = 28090
+checkport = true
+ctl_stop = true
+checksum = e44c9b440542f9c63c470bdb40b8aad2

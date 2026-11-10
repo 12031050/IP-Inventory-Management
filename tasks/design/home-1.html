@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!-- miaoda-super-design | title: 终端荧光极客 | skeleton: cli-terminal-stream | sig: CRT扫描线叠加荧光辉光与等宽对齐的命令行数据流 -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPAM · IP地址管理系统</title>
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        container: { center: true, padding: '2rem', screens: { '2xl': '1400px' } },
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))',
+            input: 'hsl(var(--input))',
+            ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+            secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+            destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+            muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+            accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+            popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
+            card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' }
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)'
+          },
+          keyframes: {
+            /* ===== KEYFRAMES:BEGIN ===== */
+            'blink': { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0' } },
+            'line-in': { '0%': { opacity: '0', transform: 'translateX(-6px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
+            'bar-grow': { '0%': { transform: 'scaleX(0)' }, '100%': { transform: 'scaleX(1)' } },
+            /* ===== KEYFRAMES:END ===== */
+          },
+          animation: {
+            /* ===== ANIMATIONS:BEGIN ===== */
+            'blink': 'blink 1s step-end infinite',
+            'line-in': 'line-in 0.45s ease forwards',
+            'bar-grow': 'bar-grow 0.8s cubic-bezier(.23,1,.32,1) forwards',
+            /* ===== ANIMATIONS:END ===== */
+          }
+        }
+      },
+      plugins: [
+        function ({ addVariant }) {
+          addVariant('intersect', '&:not([no-intersect])');
+        }
+      ]
+    };
+  </script>
+  <style>
+    /* ===== FONT-FACE:BEGIN ===== */
+    @font-face {
+      font-family: "Source Han Mono SC";
+      src: url("https://resource-static.bj.bcebos.com/fonts-skill/SourceHanMonoSC-Regular.woff2") format("woff2");
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Source Han Mono SC";
+      src: url("https://resource-static.bj.bcebos.com/fonts-skill/SourceHanMonoSC-Bold.woff2") format("woff2");
+      font-weight: 700;
+      font-display: swap;
+    }
+    /* ===== FONT-FACE:END ===== */
+
+    /* ===== DESIGN-TOKENS:BEGIN ===== */
+    :root {
+      --radius: 0.25rem;
+      --background: 90 45% 5%;
+      --foreground: 120 100% 50%;
+      --card: 90 35% 9%;
+      --card-foreground: 120 100% 50%;
+      --primary: 120 100% 50%;
+      --primary-foreground: 90 45% 5%;
+      --secondary: 90 30% 14%;
+      --secondary-foreground: 120 80% 70%;
+      --muted: 90 25% 13%;
+      --muted-foreground: 120 20% 58%;
+      --accent: 41 100% 50%;
+      --accent-foreground: 90 45% 5%;
+      --destructive: 0 90% 55%;
+      --destructive-foreground: 120 100% 50%;
+      --border: 90 25% 18%;
+      --input: 90 25% 18%;
+      --ring: 120 100% 50%;
+      --popover: 90 40% 7%;
+      --popover-foreground: 120 100% 50%;
+    }
+    /* ===== DESIGN-TOKENS:END ===== */
+
+    /* ===== CUSTOM-TOKENS:BEGIN ===== */
+    :root {
+      --font-mono: "Source Han Mono SC", "JetBrains Mono", "SFMono-Regular", monospace;
+    }
+    /* ===== CUSTOM-TOKENS:END ===== */
+
+    /* ===== SIGNATURE-CSS:BEGIN ===== */
+    body { font-family: var(--font-mono); }
+    .crt-scanlines::before {
+      content: ""; position: fixed; inset: 0; z-index: 50; pointer-events: none;
+      background: repeating-linear-gradient(0deg,
+        hsl(120 100% 50% / 0.04) 0px, hsl(120 100% 50% / 0.04) 1px,
+        transparent 1px, transparent 3px);
+    }
+    .crt-vignette::after {
+      content: ""; position: fixed; inset: 0; z-index: 49; pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 50%, hsl(90 45% 5% / 0.9) 100%);
+    }
+    .term-glow { text-shadow: 0 0 6px hsl(var(--primary) / 0.55), 0 0 18px hsl(var(--primary) / 0.2); }
+    .term-amber { color: hsl(var(--accent)); text-shadow: 0 0 6px hsl(var(--accent) / 0.5); }
+    .term-dim { color: hsl(var(--muted-foreground)); }
+    .term-bar-track { background-image: repeating-linear-gradient(90deg, hsl(var(--secondary-foreground) / 0.25) 0 6px, transparent 6px 8px); }
+    /* ===== SIGNATURE-CSS:END ===== */
+  </style>
+</head>
+<body class="bg-background text-foreground antialiased crt-scanlines crt-vignette">
+
+  <div class="min-h-screen">
+    <!-- Top status bar -->
+    <header class="border-b border-border px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <span class="text-primary term-glow font-bold tracking-tight text-lg shrink-0">IPAM</span>
+        <span class="term-dim text-xs truncate">// offline · local datastore · fnOS</span>
+      </div>
+      <div class="flex items-center gap-4 text-xs term-dim shrink-0">
+        <span class="hidden md:inline tabular-nums">192.168.1.1</span>
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 bg-primary inline-block term-glow"></span> ONLINE
+        </span>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-10">
+      <!-- Boot sequence / hero -->
+      <section id="hero" class="mb-12">
+        <p class="term-dim text-sm mb-1 opacity-0 animate-line-in" style="animation-delay: 0.05s">$ ipam --init --offline</p>
+        <p class="term-dim text-sm mb-1 opacity-0 animate-line-in" style="animation-delay: 0.15s">> establishing local datastore ............ <span class="text-primary">[OK]</span></p>
+        <p class="term-dim text-sm mb-1 opacity-0 animate-line-in" style="animation-delay: 0.25s">> indexing address space ................. <span class="text-primary">[OK]</span></p>
+        <h1 class="text-5xl md:text-7xl font-bold term-glow mt-8 leading-none opacity-0 animate-line-in" style="animation-delay: 0.4s">
+          1,247<span class="term-dim text-base ml-3 font-normal">addresses under control</span>
+        </h1>
+        <p class="term-dim mt-3 opacity-0 animate-line-in" style="animation-delay: 0.55s">> system ready<span class="animate-blink text-primary">_</span></p>
+      </section>
+
+      <!-- KPI grid -->
+      <section id="status" class="mb-12">
+        <p class="term-dim text-sm mb-4">$ ipam status --summary</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-px bg-border">
+          <div class="bg-card p-5">
+            <p class="term-dim text-xs mb-2">ALLOCATED</p>
+            <p class="text-3xl font-bold text-primary term-glow tabular-nums">1,024</p>
+            <p class="term-dim text-xs mt-1">of 1,247 total</p>
+          </div>
+          <div class="bg-card p-5">
+            <p class="term-dim text-xs mb-2">AVAILABLE</p>
+            <p class="text-3xl font-bold text-primary term-glow tabular-nums">223</p>
+            <p class="term-dim text-xs mt-1">free to assign</p>
+          </div>
+          <div class="bg-card p-5">
+            <p class="term-dim text-xs mb-2">CONFLICTS</p>
+            <p class="text-3xl font-bold term-amber tabular-nums">2</p>
+            <p class="term-amber text-xs mt-1">requires attention</p>
+          </div>
+          <div class="bg-card p-5">
+            <p class="term-dim text-xs mb-2">SUBNETS</p>
+            <p class="text-3xl font-bold text-primary term-glow tabular-nums">8</p>
+            <p class="term-dim text-xs mt-1">across 3 VLANs</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Subnet utilization -->
+      <section id="utilization" class="mb-12">
+        <p class="term-dim text-sm mb-5">$ ipam subnet --utilization</p>
+        <div class="space-y-4">
+          <div class="flex items-center gap-4">
+            <span class="text-primary tabular-nums w-36 md:w-44 shrink-0 text-sm">192.168.1.0/24</span>
+            <div class="flex-1 h-4 bg-secondary overflow-hidden term-bar-track">
+              <div class="h-full bg-primary term-glow origin-left animate-bar-grow" style="width: 82%; animation-delay: 0.3s"></div>
+            </div>
+            <span class="term-dim tabular-nums w-10 text-right text-sm">82%</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="text-primary tabular-nums w-36 md:w-44 shrink-0 text-sm">10.0.0.0/24</span>
+            <div class="flex-1 h-4 bg-secondary overflow-hidden term-bar-track">
+              <div class="h-full bg-primary term-glow origin-left animate-bar-grow" style="width: 41%; animation-delay: 0.45s"></div>
+            </div>
+            <span class="term-dim tabular-nums w-10 text-right text-sm">41%</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="text-primary tabular-nums w-36 md:w-44 shrink-0 text-sm">172.16.0.0/16</span>
+            <div class="flex-1 h-4 bg-secondary overflow-hidden term-bar-track">
+              <div class="h-full bg-primary term-glow origin-left animate-bar-grow" style="width: 12%; animation-delay: 0.6s"></div>
+            </div>
+            <span class="term-dim tabular-nums w-10 text-right text-sm">12%</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="text-primary tabular-nums w-36 md:w-44 shrink-0 text-sm">192.168.10.0/24</span>
+            <div class="flex-1 h-4 bg-secondary overflow-hidden term-bar-track">
+              <div class="h-full bg-primary term-glow origin-left animate-bar-grow" style="width: 67%; animation-delay: 0.75s"></div>
+            </div>
+            <span class="term-dim tabular-nums w-10 text-right text-sm">67%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Module menu + Activity log -->
+      <section id="modules" class="grid md:grid-cols-2 gap-8 mb-12">
+        <div>
+          <p class="term-dim text-sm mb-4">$ ipam --help</p>
+          <div class="space-y-1">
+            <div class="flex items-baseline gap-3 hover:bg-secondary px-2 py-1.5 transition-colors cursor-pointer">
+              <span class="text-primary term-glow w-16 shrink-0">ledger</span>
+              <span class="term-dim text-sm">IP地址台账 · 1,024 records</span>
+            </div>
+            <div class="flex items-baseline gap-3 hover:bg-secondary px-2 py-1.5 transition-colors cursor-pointer">
+              <span class="text-primary term-glow w-16 shrink-0">subnet</span>
+              <span class="term-dim text-sm">子网规划 · CIDR / IPv4 / IPv6</span>
+            </div>
+            <div class="flex items-baseline gap-3 hover:bg-secondary px-2 py-1.5 transition-colors cursor-pointer">
+              <span class="text-primary term-glow w-16 shrink-0">vlan</span>
+              <span class="term-dim text-sm">VLAN管理 · 3 groups</span>
+            </div>
+            <div class="flex items-baseline gap-3 hover:bg-secondary px-2 py-1.5 transition-colors cursor-pointer">
+              <span class="text-primary term-glow w-16 shrink-0">pool</span>
+              <span class="term-dim text-sm">地址池 · DHCP scope</span>
+            </div>
+            <div class="flex items-baseline gap-3 hover:bg-secondary px-2 py-1.5 transition-colors cursor-pointer">
+              <span class="text-primary term-glow w-16 shrink-0">device</span>
+              <span class="term-dim text-sm">设备资产 · 42 hosts</span>
+            </div>
+            <div class="flex items-baseline gap-3 hover:bg-secondary px-2 py-1.5 transition-colors cursor-pointer">
+              <span class="text-primary term-glow w-16 shrink-0">import</span>
+              <span class="term-dim text-sm">导入导出 · CSV / Excel</span>
+            </div>
+            <div class="flex items-baseline gap-3 hover:bg-secondary px-2 py-1.5 transition-colors cursor-pointer">
+              <span class="text-primary term-glow w-16 shrink-0">backup</span>
+              <span class="term-dim text-sm">备份恢复 · local dump</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="term-dim text-sm mb-4">$ ipam log --tail</p>
+          <div class="space-y-2.5 text-sm">
+            <div>
+              <span class="term-dim tabular-nums">[17:42:03]</span>
+              <span class="text-primary ml-2">192.168.1.104</span>
+              <span class="term-dim"> allocated → NAS-01</span>
+            </div>
+            <div>
+              <span class="term-dim tabular-nums">[17:38:21]</span>
+              <span class="term-amber ml-2">CONFLICT</span>
+              <span class="term-dim"> 10.0.0.5 duplicate MAC</span>
+            </div>
+            <div>
+              <span class="term-dim tabular-nums">[17:15:44]</span>
+              <span class="text-primary ml-2">172.20.0.0/24</span>
+              <span class="term-dim"> subnet created</span>
+            </div>
+            <div>
+              <span class="term-dim tabular-nums">[16:58:02]</span>
+              <span class="text-primary ml-2">VLAN 30</span>
+              <span class="term-dim"> linked to 10.0.0.0/24</span>
+            </div>
+            <div>
+              <span class="term-dim tabular-nums">[16:30:17]</span>
+              <span class="text-primary ml-2">backup</span>
+              <span class="term-dim"> IPAM_20260902_1630.json</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer prompt -->
+      <div class="border-t border-border pt-5">
+        <p class="term-dim text-sm">ipam@fnOS:~$ <span class="animate-blink text-primary">▊</span></p>
+      </div>
+    </main>
+  </div>
+
+  <!-- P4 丢弃以下全部 data-preview-only 脚本 -->
+  <script src="https://code.bdstatic.com/npm/tailwindcss-intersect@2.2.0/dist/observer.min.js" data-preview-only></script>
+  <script type="module" data-preview-only>
+    import { animate, inView, scroll, stagger } from "https://cdn.jsdelivr.net/npm/motion@12.23.25/+esm";
+    Object.assign(window, { animate, inView, scroll, stagger });
+    document.dispatchEvent(new Event('motion:ready'));
+  </script>
+  <script data-preview-only>
+    /* motion 函数由上面的 module 异步挂到 window；解构必须在此回调内，顶层解构会拿到 undefined */
+    document.addEventListener('motion:ready', () => {
+      const { animate, inView, scroll, stagger } = window;
+      /* ===== MOTION-SCRIPT:BEGIN ===== */
+      /* ===== MOTION-SCRIPT:END ===== */
+    });
+  </script>
+</body>
+</html>

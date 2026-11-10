@@ -1,0 +1,15 @@
+{
+  ".url": {
+    "ipam.main": {
+      "title": "IP台账管理",
+      "desc": "IP 地址管理系统 · 本地离线运行",
+      "icon": "images/icon_{0}.png",
+      "type": "iframe",
+      "protocol": "",
+      "gatewayPrefix": "/app/ipam",
+      "gatewaySocket": "app.sock",
+      "url": "/app/ipam",
+      "allUsers": true
+    }
+  }
+}

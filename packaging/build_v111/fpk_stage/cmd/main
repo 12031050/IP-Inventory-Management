@@ -1,0 +1,36 @@
+#!/bin/bash
+PORT=${TRIM_SERVICE_PORT:-28090}
+PID_FILE="${TRIM_PKGVAR:-/tmp}/ipam_app.pid"
+LOG_FILE="${TRIM_PKGVAR:-/tmp}/ipam_app.log"
+APP_DIR="${TRIM_APPDEST:-/var/apps/ipam/target}"
+WWW_DIR="${APP_DIR}/www"
+
+start_service() {
+    if is_running; then return 0; fi
+    mkdir -p "$(dirname "$PID_FILE")" "$(dirname "$LOG_FILE")" "${TRIM_PKGVAR:-/tmp}"
+    if [ -f "${APP_DIR}/server.py" ] && command -v python3 >/dev/null 2>&1; then
+        export TRIM_PKGVAR="${TRIM_PKGVAR:-/tmp}"
+        export TRIM_APPDEST="${APP_DIR}"
+        python3 "${APP_DIR}/server.py" "${PORT}" "${WWW_DIR}" >> "${LOG_FILE}" 2>&1 &
+        echo $! > "${PID_FILE}"
+    fi
+    sleep 0.5
+}
+stop_service() {
+    if [ -f "${PID_FILE}" ]; then kill $(cat "${PID_FILE}") 2>/dev/null; rm -f "${PID_FILE}"; fi
+    pkill -f "server.py ${PORT}" 2>/dev/null || true
+    rm -f "${APP_DIR}/app.sock"
+}
+is_running() {
+    if [ -f "${PID_FILE}" ] && kill -0 $(cat "${PID_FILE}") 2>/dev/null; then return 0; fi
+    if command -v ss >/dev/null 2>&1 && ss -tulpn 2>/dev/null | grep -q ":${PORT} "; then return 0; fi
+    return 1
+}
+case "$1" in
+    start) start_service ;;
+    stop) stop_service ;;
+    status) is_running && exit 0 || exit 1 ;;
+    restart) stop_service; start_service ;;
+    *) exit 1 ;;
+esac
+exit 0

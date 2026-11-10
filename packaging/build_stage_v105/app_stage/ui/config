@@ -1,0 +1,22 @@
+{
+  ".url": {
+    "ipam.desk": {
+      "title": "IP台账管理",
+      "icon": "images/icon_{0}.png",
+      "type": "iframe",
+      "protocol": "http",
+      "port": "28090",
+      "url": "/",
+      "allUsers": true
+    },
+    "ipam.main": {
+      "title": "IP台账管理",
+      "icon": "images/icon_{0}.png",
+      "type": "iframe",
+      "protocol": "http",
+      "port": "28090",
+      "url": "/",
+      "allUsers": true
+    }
+  }
+}

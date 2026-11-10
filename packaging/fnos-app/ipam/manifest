@@ -1,0 +1,13 @@
+appname=ipam
+version=1.0.1
+display_name=IPAM 控制台
+desc=面向飞牛 OS 的 IP 地址管理系统：IP 台账（冲突检测）、子网规划（CIDR/IPv4/IPv6）、VLAN 管理、地址池自动分配、设备资产、CSV/Excel 导入导出与 JSON 备份恢复。纯本地离线运行，数据不出网。
+source=thirdparty
+platform=all
+maintainer=IPAM Console
+desktop_uidir=ui
+desktop_applaunchname=ipam.main
+service_port=8080
+checkport=true
+ctl_stop=true
+checksum=

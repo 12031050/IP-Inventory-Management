@@ -1,0 +1,89 @@
+#!/bin/bash
+
+PORT=${TRIM_SERVICE_PORT:-28090}
+PID_FILE="${TRIM_PKGVAR:-/tmp}/ipam_app.pid"
+LOG_FILE="${TRIM_PKGVAR:-/tmp}/ipam_app.log"
+APP_DIR="${TRIM_APPDEST:-/var/apps/ipam/target}"
+WWW_DIR="${APP_DIR}/www"
+
+if [ ! -d "$WWW_DIR" ]; then
+    WWW_DIR="$(cd "$(dirname "$0")/../app/www" 2>/dev/null && pwd)"
+fi
+
+start_service() {
+    if is_running; then
+        return 0
+    fi
+    mkdir -p "$(dirname "$PID_FILE")" "$(dirname "$LOG_FILE")"
+    
+    # 优先使用专用 SPA server 脚本
+    if [ -f "${APP_DIR}/server.py" ] && command -v python3 >/dev/null 2>&1; then
+        python3 "${APP_DIR}/server.py" "${PORT}" "${WWW_DIR}" >> "${LOG_FILE}" 2>&1 &
+        echo $! > "${PID_FILE}"
+    elif command -v python3 >/dev/null 2>&1; then
+        python3 -m http.server "${PORT}" --directory "${WWW_DIR}" >> "${LOG_FILE}" 2>&1 &
+        echo $! > "${PID_FILE}"
+    elif command -v node >/dev/null 2>&1; then
+        node -e "
+        const http = require('http');
+        const fs = require('fs');
+        const path = require('path');
+        const dir = process.argv[1];
+        const server = http.createServer((req, res) => {
+            let p = path.join(dir, req.url.split('?')[0]);
+            if (p.endsWith('/') || !fs.existsSync(p)) p = path.join(dir, 'index.html');
+            const ext = path.extname(p);
+            const mime = {'.html':'text/html', '.js':'application/javascript', '.css':'text/css', '.png':'image/png', '.svg':'image/svg+xml'}[ext] || 'application/octet-stream';
+            res.writeHead(200, {'Content-Type': mime});
+            fs.createReadStream(p).pipe(res);
+        });
+        server.listen(process.argv[2]);
+        " "${WWW_DIR}" "${PORT}" >> "${LOG_FILE}" 2>&1 &
+        echo $! > "${PID_FILE}"
+    fi
+    sleep 0.5
+    return 0
+}
+
+stop_service() {
+    if [ -f "${PID_FILE}" ]; then
+        kill $(cat "${PID_FILE}") 2>/dev/null
+        rm -f "${PID_FILE}"
+    fi
+    # 清理遗留进程
+    pkill -f "server.py ${PORT}" 2>/dev/null || true
+}
+
+is_running() {
+    if [ -f "${PID_FILE}" ] && kill -0 $(cat "${PID_FILE}") 2>/dev/null; then
+        return 0
+    fi
+    # 端口检查
+    if command -v ss >/dev/null 2>&1 && ss -tulpn | grep -q ":${PORT} "; then
+        return 0
+    fi
+    return 1
+}
+
+case "$1" in
+    start)
+        start_service
+        ;;
+    stop)
+        stop_service
+        ;;
+    status)
+        if is_running; then
+            exit 0
+        else
+            exit 1
+        fi
+        ;;
+    restart)
+        stop_service
+        start_service
+        ;;
+    *)
+        exit 1
+        ;;
+esac

@@ -1,0 +1,7 @@
+{
+  "protocol": "http",
+  "port": 28090,
+  "path": "/api/health",
+  "interval": 10,
+  "timeout": 5
+}

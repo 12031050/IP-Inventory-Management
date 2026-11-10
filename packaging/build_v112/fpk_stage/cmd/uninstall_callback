@@ -1,0 +1,24 @@
+#!/bin/bash
+# 停止服务进程
+PID_FILE="${TRIM_PKGVAR:-/tmp}/ipam_app.pid"
+if [ -f "$PID_FILE" ]; then
+    kill $(cat "$PID_FILE") 2>/dev/null || true
+    rm -f "$PID_FILE"
+fi
+pkill -f "server.py ${TRIM_SERVICE_PORT:-28090}" 2>/dev/null || true
+
+# 彻底清理数据库文件（包括所有账户、密码、角色、IP台账、子网数据等）
+if [ -n "$TRIM_PKGVAR" ] && [ -d "$TRIM_PKGVAR" ]; then
+    rm -rf "${TRIM_PKGVAR:?}"/* 2>/dev/null || true
+    rm -rf "${TRIM_PKGVAR:?}"/.* 2>/dev/null || true
+fi
+
+# 清理配置与临时数据
+if [ -n "$TRIM_PKGETC" ] && [ -d "$TRIM_PKGETC" ]; then
+    rm -rf "${TRIM_PKGETC:?}"/* 2>/dev/null || true
+fi
+if [ -n "$TRIM_APPTMP" ] && [ -d "$TRIM_APPTMP" ]; then
+    rm -rf "${TRIM_APPTMP:?}"/* 2>/dev/null || true
+fi
+
+exit 0

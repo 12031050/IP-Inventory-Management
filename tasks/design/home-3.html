@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!-- miaoda-super-design | title: 暖白玻璃轻量 | skeleton: topnav-bento-grid | sig: 仿宋标题配磨砂玻璃卡与不对称便当盒网格 -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPAM · IP地址管理系统</title>
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        container: { center: true, padding: '2rem', screens: { '2xl': '1400px' } },
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))',
+            input: 'hsl(var(--input))',
+            ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+            secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+            destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+            muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+            accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+            popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
+            card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+            success: 'hsl(var(--success))'
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)'
+          },
+          keyframes: {
+            /* ===== KEYFRAMES:BEGIN ===== */
+            'fade-up': { '0%': { opacity: '0', transform: 'translateY(14px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            'grow-bar': { '0%': { transform: 'scaleX(0)' }, '100%': { transform: 'scaleX(1)' } },
+            /* ===== KEYFRAMES:END ===== */
+          },
+          animation: {
+            /* ===== ANIMATIONS:BEGIN ===== */
+            'fade-up': 'fade-up 0.5s ease forwards',
+            'grow-bar': 'grow-bar 0.9s cubic-bezier(.23,1,.32,1) forwards',
+            /* ===== ANIMATIONS:END ===== */
+          }
+        }
+      },
+      plugins: [
+        function ({ addVariant }) {
+          addVariant('intersect', '&:not([no-intersect])');
+        }
+      ]
+    };
+  </script>
+  <style>
+    /* ===== FONT-FACE:BEGIN ===== */
+    @font-face {
+      font-family: "ZhuqueFangsong";
+      src: url("https://resource-static.bj.bcebos.com/fonts-skill/ZhuqueFangsong_Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "MiSans";
+      src: url("https://resource-static.bj.bcebos.com/fonts-skill/MiSans_Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "MiSans";
+      src: url("https://resource-static.bj.bcebos.com/fonts-skill/MiSans_Medium.ttf") format("truetype");
+      font-weight: 500;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "MiSans";
+      src: url("https://resource-static.bj.bcebos.com/fonts-skill/MiSans_SemiBold.ttf") format("truetype");
+      font-weight: 600;
+      font-display: swap;
+    }
+    /* ===== FONT-FACE:END ===== */
+
+    /* ===== DESIGN-TOKENS:BEGIN ===== */
+    :root {
+      --radius: 0.75rem;
+      --background: 48 33% 97%;
+      --foreground: 0 0% 6%;
+      --card: 48 40% 98%;
+      --card-foreground: 0 0% 6%;
+      --primary: 218 18% 30%;
+      --primary-foreground: 40 30% 96%;
+      --secondary: 43 20% 92%;
+      --secondary-foreground: 218 18% 30%;
+      --muted: 43 20% 92%;
+      --muted-foreground: 30 8% 40%;
+      --accent: 0 68% 42%;
+      --accent-foreground: 0 0% 100%;
+      --destructive: 0 68% 42%;
+      --destructive-foreground: 0 0% 100%;
+      --border: 40 13% 82%;
+      --input: 40 13% 82%;
+      --ring: 218 18% 30%;
+      --popover: 48 40% 98%;
+      --popover-foreground: 0 0% 6%;
+    }
+    /* ===== DESIGN-TOKENS:END ===== */
+
+    /* ===== CUSTOM-TOKENS:BEGIN ===== */
+    :root {
+      --font-display: "ZhuqueFangsong", "Source Han Serif CN", "Songti SC", serif;
+      --font-sans: "MiSans", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --success: 142 50% 34%;
+    }
+    /* ===== CUSTOM-TOKENS:END ===== */
+
+    /* ===== SIGNATURE-CSS:BEGIN ===== */
+    body { font-family: var(--font-sans); }
+    .font-display { font-family: var(--font-display); }
+    .glass { background: hsl(48 40% 98% / 0.72); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); }
+    .tnum { font-variant-numeric: tabular-nums; }
+    .bg-blob {
+      position: fixed; border-radius: 9999px; filter: blur(60px); opacity: 0.5; z-index: 0; pointer-events: none;
+    }
+    /* ===== SIGNATURE-CSS:END ===== */
+  </style>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+  <!-- soft gradient blobs for glass to blur over -->
+  <div class="bg-blob" style="width: 420px; height: 420px; top: -120px; right: -80px; background: hsl(24 80% 88%);"></div>
+  <div class="bg-blob" style="width: 360px; height: 360px; bottom: -100px; left: -60px; background: hsl(200 60% 90%);"></div>
+
+  <div class="relative z-10 min-h-screen">
+    <!-- Top nav -->
+    <header class="sticky top-0 z-20 glass border-b border-border">
+      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span class="text-primary-foreground font-bold text-xs">IP</span>
+          </div>
+          <span class="font-display text-lg">IPAM</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
+          <a class="text-foreground font-medium">概览</a>
+          <a class="hover:text-foreground transition-colors">IP台账</a>
+          <a class="hover:text-foreground transition-colors">子网规划</a>
+          <a class="hover:text-foreground transition-colors">设备资产</a>
+          <a class="hover:text-foreground transition-colors">备份</a>
+        </nav>
+        <button class="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity">新增 IP</button>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-12">
+      <!-- Hero -->
+      <section id="hero" class="mb-12">
+        <p class="text-sm text-accent font-medium mb-3 opacity-0 animate-fade-up" style="animation-delay: 0.05s">本地部署 · 离线可用 · 数据不出网</p>
+        <h1 class="font-display text-4xl md:text-6xl leading-tight opacity-0 animate-fade-up" style="animation-delay: 0.15s">
+          集中管理你的<br>网络地址空间
+        </h1>
+        <p class="text-muted-foreground mt-4 max-w-prose opacity-0 animate-fade-up" style="animation-delay: 0.25s">
+          为飞牛 OS 打造的 IP 地址管理工具，集中规划、分配与监控每一台网络设备的地址，告别 Excel 记录的混乱。
+        </p>
+        <!-- glass stat cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <div class="glass border border-border rounded-xl p-5 opacity-0 animate-fade-up" style="animation-delay: 0.35s">
+            <p class="text-xs text-muted-foreground mb-2">地址总数</p>
+            <p class="text-3xl font-bold tnum">1,247</p>
+          </div>
+          <div class="glass border border-border rounded-xl p-5 opacity-0 animate-fade-up" style="animation-delay: 0.45s">
+            <p class="text-xs text-muted-foreground mb-2">已分配</p>
+            <p class="text-3xl font-bold tnum text-primary">1,024</p>
+          </div>
+          <div class="glass border border-border rounded-xl p-5 opacity-0 animate-fade-up" style="animation-delay: 0.55s">
+            <p class="text-xs text-muted-foreground mb-2">可用地址</p>
+            <p class="text-3xl font-bold tnum text-success">223</p>
+          </div>
+          <div class="glass border border-border rounded-xl p-5 opacity-0 animate-fade-up" style="animation-delay: 0.65s">
+            <p class="text-xs text-muted-foreground mb-2">冲突告警</p>
+            <p class="text-3xl font-bold tnum text-accent">2</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bento module grid -->
+      <section id="modules" class="mb-12">
+        <h2 class="font-display text-2xl mb-5 opacity-0 intersect:animate-fade-up intersect-once">功能模块</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- large card: IP台账 -->
+          <div class="md:col-span-2 group relative glass border border-border rounded-xl p-6 overflow-hidden opacity-0 intersect:animate-fade-up intersect-once">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm text-muted-foreground">IP台账</p>
+                <p class="text-4xl font-bold tnum mt-2">1,024</p>
+                <p class="text-sm text-muted-foreground mt-1">已记录地址 · 含 MAC 绑定</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 bg-secondary rounded-full text-muted-foreground">核心</span>
+            </div>
+            <!-- hover reveal detail -->
+            <div class="mt-5 max-h-0 group-hover:max-h-24 overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100">
+              <div class="flex gap-6 text-sm">
+                <div><span class="text-muted-foreground">IPv4</span><p class="font-medium tnum">982</p></div>
+                <div><span class="text-muted-foreground">IPv6</span><p class="font-medium tnum">42</p></div>
+                <div><span class="text-muted-foreground">保留</span><p class="font-medium tnum">18</p></div>
+                <div><span class="text-accent">冲突</span><p class="font-medium tnum text-accent">2</p></div>
+              </div>
+            </div>
+          </div>
+          <!-- small card: 子网规划 -->
+          <div class="group glass border border-border rounded-xl p-6 opacity-0 intersect:animate-fade-up intersect-once">
+            <p class="text-sm text-muted-foreground">子网规划</p>
+            <p class="text-4xl font-bold tnum mt-2">8</p>
+            <p class="text-sm text-muted-foreground mt-1">CIDR 子网 · IPv4/IPv6</p>
+          </div>
+          <!-- small: VLAN -->
+          <div class="group glass border border-border rounded-xl p-6 opacity-0 intersect:animate-fade-up intersect-once">
+            <p class="text-sm text-muted-foreground">VLAN管理</p>
+            <p class="text-4xl font-bold tnum mt-2">3</p>
+            <p class="text-sm text-muted-foreground mt-1">虚拟局域网</p>
+          </div>
+          <!-- small: 地址池 -->
+          <div class="group glass border border-border rounded-xl p-6 opacity-0 intersect:animate-fade-up intersect-once">
+            <p class="text-sm text-muted-foreground">地址池</p>
+            <p class="text-4xl font-bold tnum mt-2">5</p>
+            <p class="text-sm text-muted-foreground mt-1">DHCP 范围</p>
+          </div>
+          <!-- small: 设备资产 -->
+          <div class="group glass border border-border rounded-xl p-6 opacity-0 intersect:animate-fade-up intersect-once">
+            <p class="text-sm text-muted-foreground">设备资产</p>
+            <p class="text-4xl font-bold tnum mt-2">42</p>
+            <p class="text-sm text-muted-foreground mt-1">网络设备</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Subnet utilization + recent -->
+      <section id="utilization" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+        <div class="glass border border-border rounded-xl p-6 opacity-0 intersect:animate-fade-up intersect-once">
+          <h2 class="font-display text-xl mb-5">子网利用率</h2>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-sm mb-1.5"><span class="tnum">192.168.1.0/24</span><span class="text-muted-foreground tnum">82%</span></div>
+              <div class="h-2 bg-secondary rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full origin-left animate-grow-bar" style="width: 82%; animation-delay: 0.2s"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1.5"><span class="tnum">10.0.0.0/24</span><span class="text-muted-foreground tnum">41%</span></div>
+              <div class="h-2 bg-secondary rounded-full overflow-hidden"><div class="h-full bg-primary rounded-full origin-left animate-grow-bar" style="width: 41%; animation-delay: 0.35s"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1.5"><span class="tnum">172.16.0.0/16</span><span class="text-muted-foreground tnum">12%</span></div>
+              <div class="h-2 bg-secondary rounded-full overflow-hidden"><div class="h-full bg-primary rounded-full origin-left animate-grow-bar" style="width: 12%; animation-delay: 0.5s"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="glass border border-border rounded-xl p-6 opacity-0 intersect:animate-fade-up intersect-once">
+          <h2 class="font-display text-xl mb-5">最近活动</h2>
+          <div class="space-y-3.5">
+            <div class="flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-success inline-block shrink-0"></span>
+              <span class="text-sm tnum">192.168.1.104</span>
+              <span class="text-sm text-muted-foreground ml-auto">分配 → NAS-01</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-accent inline-block shrink-0"></span>
+              <span class="text-sm tnum">10.0.0.5</span>
+              <span class="text-sm text-muted-foreground ml-auto">检测到冲突</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-primary inline-block shrink-0"></span>
+              <span class="text-sm tnum">172.20.0.0/24</span>
+              <span class="text-sm text-muted-foreground ml-auto">新建子网</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-success inline-block shrink-0"></span>
+              <span class="text-sm">数据备份</span>
+              <span class="text-sm text-muted-foreground ml-auto">已完成</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- P4 丢弃以下全部 data-preview-only 脚本 -->
+  <script src="https://code.bdstatic.com/npm/tailwindcss-intersect@2.2.0/dist/observer.min.js" data-preview-only></script>
+  <script type="module" data-preview-only>
+    import { animate, inView, scroll, stagger } from "https://cdn.jsdelivr.net/npm/motion@12.23.25/+esm";
+    Object.assign(window, { animate, inView, scroll, stagger });
+    document.dispatchEvent(new Event('motion:ready'));
+  </script>
+  <script data-preview-only>
+    /* motion 函数由上面的 module 异步挂到 window；解构必须在此回调内，顶层解构会拿到 undefined */
+    document.addEventListener('motion:ready', () => {
+      const { animate, inView, scroll, stagger } = window;
+      /* ===== MOTION-SCRIPT:BEGIN ===== */
+      /* ===== MOTION-SCRIPT:END ===== */
+    });
+  </script>
+</body>
+</html>

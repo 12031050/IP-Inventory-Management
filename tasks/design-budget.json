@@ -1,0 +1,17 @@
+{
+  "clarified": true,
+  "clarify_reason": "ask_user 已发送，用户全部跳过；配色与视觉气质均为未锁定轴，按 PRD 网络运维/IPAM 场景推导并在三稿间分散",
+  "snapshot": [],
+  "budget": 3,
+  "checked": [
+    "home-1.html",
+    "home-2.html",
+    "home-3.html"
+  ],
+  "round_open": false,
+  "sha": {
+    "home-1.html": "e4e04690c619a5b3043139c35b7928ffe85c9ea2b61ce93140fc683e042e0d14",
+    "home-2.html": "eaaf73a41cef9537dcdf04454f9431e425b45036d038fc5308972101c6005e8e",
+    "home-3.html": "ae7f9cc8d5e872500fccca9c090513179300f2597ad832437afba59abefd9e5e"
+  }
+}

@@ -1,0 +1,14 @@
+appname = ipam
+version = 1.0.7
+display_name = IP台账管理
+desc = 面向飞牛 OS 的 IP 台账管理系统：IP 地址规划、子网划分、VLAN 管理、状态监控与数据备份。本地部署，数据不出网。
+platform = all
+source = thirdparty
+maintainer = 梦非常浪漫
+distributor = 梦非常浪漫
+desktop_uidir = ui
+desktop_applaunchname = ipam.main
+service_port = 28090
+checkport = true
+ctl_stop = true
+checksum = ffeb744a25dbcc2066883b967f611080

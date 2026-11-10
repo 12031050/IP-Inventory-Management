@@ -1,0 +1,14 @@
+appname = ipam
+version = 1.0.9
+display_name = IP台账管理
+desc = 面向飞牛 OS 的 IP 台账管理系统：支持飞牛 NAS 账号免密授权登录、首个授权用户自动成为超级管理员、SQLite 本地数据库持久化存储（IP台账/子网/VLAN/地址池/设备/用户/角色全部跨设备持久保存）、多用户权限协同、路由器地址表导入与本地备份。本地部署，数据不出网。
+platform = all
+source = thirdparty
+maintainer = 梦非常浪漫
+distributor = 梦非常浪漫
+desktop_uidir = ui
+desktop_applaunchname = ipam.main
+service_port = 28090
+checkport = true
+ctl_stop = true
+checksum = 903be07b820c108f62431c76d785884d

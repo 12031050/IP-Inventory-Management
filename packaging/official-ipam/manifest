@@ -1,0 +1,12 @@
+appname               = ipam
+version               = 1.0.1
+display_name          = IPAM 控制台
+desc                  = 面向飞牛 OS 的 IP 地址管理系统：IP 台账、子网规划、VLAN 管理、地址池自动分配、设备资产、CSV/Excel 导入导出与 JSON 备份。免 Docker 轻量零内存占用，数据不出网。
+platform              = all
+source                = thirdparty
+maintainer            = IPAM Team
+distributor           = IPAM Team
+desktop_uidir         = ui
+desktop_applaunchname = ipam.main
+ctl_stop              = false
+checkport             = false
