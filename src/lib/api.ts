@@ -25,12 +25,44 @@ const API_BASE = ((): string => {
   return '';
 })();
 
+// 飞牛统一网关固定前缀（app/ui/config 的 gatewayPrefix）。
+// 当页面运行在 iframe 中、pathname 未落在 /app/... 下时，API_BASE 会退化为 ''，
+// 导致登录请求打到站点根路径被网关静态层以「非 JSON 404」拦截（表现为「授权登录失败」/登录 404）。
+const GATEWAY_FALLBACK = '/app/ipam';
+
+// 统一的 API 请求封装：按「检测到的前缀 → 已知网关前缀」的顺序尝试，
+// 任一候选返回 404（路由未命中）时自动改用另一前缀重试，
+// 从而兼容「网关剥离前缀」与「网关保留前缀」两种转发约定，彻底消除登录 404/400。
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const candidates: string[] = [];
+  for (const base of [API_BASE, GATEWAY_FALLBACK]) {
+    const full = `${base}${path}`;
+    if (!candidates.includes(full)) candidates.push(full);
+  }
+  let lastRes: Response | null = null;
+  for (let i = 0; i < candidates.length; i++) {
+    let res: Response;
+    try {
+      res = await fetch(candidates[i], init);
+    } catch {
+      continue; // 网络异常：尝试下一候选
+    }
+    lastRes = res;
+    // 404 表示该前缀下路由未命中（被静态/网关层拦截），换下一前缀重试
+    if (res.status !== 404) return res;
+    if (i === candidates.length - 1) return res;
+  }
+  // 所有候选均网络异常：抛出，交由调用方降级处理
+  if (!lastRes) throw new Error('apiFetch: all candidates failed');
+  return lastRes;
+}
+
 // 检测后端 SQLite API 是否可用
 let isBackendAvailable: boolean | null = null;
 
 export async function checkBackendHealth(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/api/health`, { method: 'GET', cache: 'no-cache' });
+    const res = await apiFetch('/api/health', { method: 'GET', cache: 'no-cache' });
     isBackendAvailable = res.ok;
     return res.ok;
   } catch {
@@ -50,7 +82,7 @@ export interface NasUserInfo {
 // 获取当前 NAS 环境中注入的用户信息与设备名（无网关身份时 available:false，不伪造默认账户）
 export async function getNasUser(): Promise<NasUserInfo> {
   try {
-    const res = await fetch(`${API_BASE}/api/nas/user`, { method: 'GET', credentials: 'include' });
+    const res = await apiFetch('/api/nas/user', { method: 'GET', credentials: 'include' });
     if (res.ok) {
       const data = await res.json();
       return data;
@@ -64,7 +96,7 @@ export async function getNasUser(): Promise<NasUserInfo> {
 // 飞牛 NAS 免密授权登录（身份完全由网关注入的 X-Trim-* Header 决定，前端不携带任何自报用户名）
 export async function loginWithNasApi(): Promise<{ ok: boolean; user?: User; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/api/auth/nas-login`, {
+    const res = await apiFetch('/api/auth/nas-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -88,7 +120,7 @@ export async function loginWithPasswordApi(
   password: string,
 ): Promise<{ ok: boolean; user?: User; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
+    const res = await apiFetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
@@ -114,7 +146,7 @@ export async function loginWithPasswordApi(
 // 完整数据加载（从 SQLite 或 localStorage）
 export async function loadAppDataApi(): Promise<AppData> {
   try {
-    const res = await fetch(`${API_BASE}/api/data`, { method: 'GET', credentials: 'include' });
+    const res = await apiFetch('/api/data', { method: 'GET', credentials: 'include' });
     if (res.ok) {
       const data = await res.json();
       if (data && typeof data === 'object') {
@@ -139,7 +171,7 @@ export async function loadAppDataApi(): Promise<AppData> {
 export async function saveAppDataApi(data: AppData): Promise<boolean> {
   writeJSON('app_data', data);
   try {
-    const res = await fetch(`${API_BASE}/api/data`, {
+    const res = await apiFetch('/api/data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -154,7 +186,7 @@ export async function saveAppDataApi(data: AppData): Promise<boolean> {
 // 获取全部用户（从 SQLite，回退 localStorage）
 export async function getUsersApi(): Promise<User[]> {
   try {
-    const res = await fetch(`${API_BASE}/api/users`, { method: 'GET', credentials: 'include' });
+    const res = await apiFetch('/api/users', { method: 'GET', credentials: 'include' });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {
@@ -172,7 +204,7 @@ export async function getUsersApi(): Promise<User[]> {
 export async function saveUsersApi(users: User[]): Promise<boolean> {
   writeJSON('app_users_v2', users);
   try {
-    const res = await fetch(`${API_BASE}/api/users`, {
+    const res = await apiFetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(users),
@@ -187,7 +219,7 @@ export async function saveUsersApi(users: User[]): Promise<boolean> {
 // 获取全部角色（从 SQLite，回退 localStorage）
 export async function getRolesApi(): Promise<Role[]> {
   try {
-    const res = await fetch(`${API_BASE}/api/roles`, { method: 'GET', credentials: 'include' });
+    const res = await apiFetch('/api/roles', { method: 'GET', credentials: 'include' });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {
@@ -205,7 +237,7 @@ export async function getRolesApi(): Promise<Role[]> {
 export async function saveRolesApi(roles: Role[]): Promise<boolean> {
   writeJSON('app_roles_v2', roles);
   try {
-    const res = await fetch(`${API_BASE}/api/roles`, {
+    const res = await apiFetch('/api/roles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(roles),
