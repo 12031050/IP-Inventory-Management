@@ -18,7 +18,7 @@ OUT_DIR = os.path.join(ROOT, "packaging")
 
 APP_STAGE = "/tmp/ipam120_app"
 STAGE = "/tmp/ipam120_stage"
-VERSION = "1.2.4"
+VERSION = "1.2.6"
 
 
 def sh(cmd):
