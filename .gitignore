@@ -1,36 +1,82 @@
-# Logs
-/logs
+# ===== Node / 前端 =====
+node_modules/
+dist/
+dist-ssr/
+build/
+*.local
+
+# 压缩 / 打包产物
+*.tgz
+*.fpk
+!packaging/*.fpk   # FPK 产物如需跟踪可去掉这行
+
+# ===== 环境与密钥 =====
+.env
+.env.*
+!.env.example
+supabase/functions/*
+!supabase/functions/.env.example
+*.pem
+*.key
+
+# ===== Python / 后端 =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+pip-wheel-metadata/
+# SQLite 数据（本地开发用库不应进压缩）
+*.db
+*.sqlite
+*.sqlite3
+packaging/**/data/*.db
+packaging/**/data/*.sqlite*
+
+# ===== 操作系统 / IDE =====
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+.history/
+
+# ===== 日志 / 测试 / 分析 =====
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
+coverage/
+.nyc_output/
+.pytest_cache/
 
-node_modules
-dist
-dist-ssr
-output
-*.local
-package-lock.json
-playwright-report
-test-results
+# ===== Cache / 工具 =====
+.cache/
+.parcel-cache/
+.next/
+.turbo/
+.vercel/
+.netlify/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-package.json.[0-9]*
-.sync
-history/*.json
-.vite_cache
-/.skills
-/tasks
-.native-wind-cache
-.vite
+# ===== 文档生成物 =====
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# ===== Vite / TS 构建中间产物 =====
+*.tsbuildinfo
+.tsconfig.tsbuildinfo
+.eslintcache
+
+# ===== Sentry =====
+.sentryclirc
+sentry.properties
+
+# ===== Taipa / Images（如需发布图标可调整） =====
+# *.ico
+
+# ===== 临时目录 =====
+tmp/
+temp/
+.tmp/

@@ -1,98 +1,84 @@
-## 介绍
+# IP-Inventory-Management · IP 台账管理系统
 
-项目介绍
+面向弱电运维 / 飞牛 OS（fnOS）NAS 的一体化 **IP 地址管理（IPAM）** 工具。前端 React 18 + Vite + Tailwind + shadcn/ui，后端为轻量 Python `http.server` + **SQLite** 单文件服务，数据**本地存储**、离线可用，可打包为 **FPK** 一键部署到飞牛 NAS，也支持纯前端本地浏览器运行（localStorage 兜底）。
 
-## 目录结构
+## ✨ 功能特性
 
+- **网络概览 Dashboard**：IP 总数、已用率、子网 / VLAN 数量统计与利用率进度条
+- **IP 台账**：IP 记录 CRUD、解析（hostname）、搜索、**IP / MAC / 域名冲突检测**、分配 / 预订 / 离线状态
+- **子网管理**：新增 IPv4/IPv6 子网（CIDR 校验）、网关、**CIDR 利用率计算**、查看子网内 IP
+- **VLAN 管理**：创建 VLAN、**多选关联子网**、启用 / 停用
+- **地址池池**：创建地址池（开始/结束掩码）、按池**自动分配**空闲 IP
+- **设备资产**：设备 IP / MAC / 类型 / 位置管理
+- **导入导出**：IP / 子网 / 设备 **CSV 导入、Excel 导入导出（xlsx）**，带列头映射
+- **备份恢复**：导出 / 导入 **JSON 全量备份**、历史备份记录
+- **登录认证**：本地登录注册（localStorage；fnOS 统一部署下走 `/api/auth/nas-login` 网关头）+ 账号密码登录、首个用户自动超管
+- 深湛运维**暗色主题**，侧边栏布局，响应式适配平板 / 移动端
+
+## 🚀 本地运行
+
+### 前置
+- Node.js ≥ 18（推荐 20）与 `pnpm`（`npm i -g pnpm`）
+- Python ≥ 3.8（Python http.server + sqlite3，零第三方依赖）
+
+### 前端（热更新开发）
+```bash
+pnpm install        # 安装依赖（若遇问题改用 npm install）
+pnpm dev            # 本地开发服务器（热更新）
 ```
-├── README.md # 说明文档
-├── components.json # 组件库配置
-├── index.html # 入口文件
-├── package.json # 包管理
-├── postcss.config.js # postcss 配置
-├── public # 静态资源目录
-│   ├── favicon.png # 图标
-│   └── images # 图片资源
-├── src # 源码目录
-│   ├── App.tsx # 入口文件
-│   ├── components # 组件目录
-│   ├── contexts # 上下文目录
-│   ├── db # 数据库配置目录
-│   ├── hooks # 通用钩子函数目录
-│   ├── index.css # 全局样式
-│   ├── layout # 布局目录
-│   ├── lib # 工具库目录
-│   ├── main.tsx # 入口文件
-│   ├── routes.tsx # 路由配置
-│   ├── pages # 页面目录
-│   ├── services  # 数据库交互目录
-│   ├── types   # 类型定义目录
-├── tsconfig.app.json  # ts 前端配置文件
-├── tsconfig.json # ts 配置文件
-├── tsconfig.node.json # ts node端配置文件
-└── vite.config.ts # vite 配置文件
-```
+浏览器打开终端提示的本地地址（默认 `5173`）。**未启动后端时，应用会自动使用浏览器 localStorage 作数据存储**，功能完整可用。
 
-## 技术栈
-
-Vite、TypeScript、React、Supabase
-
-## 本地开发
-
-### 如何在本地编辑代码？
-
-您可以选择 [VSCode](https://code.visualstudio.com/Download) 或者您常用的任何 IDE 编辑器，唯一的要求是安装 Node.js 和 npm.
-
-### 环境要求
-
-```
-# Node.js ≥ 20
-# npm ≥ 10
-例如：
-# node -v   # v20.18.3
-# npm -v    # 10.8.2
+### 后端（可选，真实持久化）
+启动场库后端后，数据会写入 SQLite 而非浏览器：
+```bash
+python3 packaging/templates-cgi/app/server.py
 ```
 
-具体安装步骤如下：
-
-### 在 Windows 上安装 Node.js
-
-```
-# Step 1: 访问Node.js官网：https://nodejs.org/，点击下载后，会根据你的系统自动选择合适的版本（32位或64位）。
-# Step 2: 运行安装程序：下载完成后，双击运行安装程序。
-# Step 3: 完成安装：按照安装向导完成安装过程。
-# Step 4: 验证安装：在命令提示符（cmd）或IDE终端（terminal）中输入 node -v 和 npm -v 来检查 Node.js 和 npm 是否正确安装。
+### 代码检查（本项目自定义）
+```bash
+pnpm lint           # tsgo 类型检查 + biome lint + tailwindcss 语法检查
 ```
 
-### 在 macOS 上安装 Node.js
+### 移动加密开发进阶脚本
+综合导向 `/scripts/package-fpk-*.py` 与 `package-fpk.mjs`，用于**打包为飞牛 FPK 安装包**（详见下节）。
 
+## 📦 飞牛 OS（fnOS）部署
+
+FPK 打包产物在 `packaging/` 下（如 `packaging/ipam-1.2.6.fpk`）。
+```bash
+# 以网关模式打包（Vite 会加 --base /app/ipam/ 前缀，server.py 会剥离前缀路由）
+python3 scripts/package-fpk-gateway.py
 ```
-# Step 1: 使用Homebrew安装（推荐方法）：打开终端。输入命令brew install node并回车。如果尚未安装Homebrew，需要先安装Homebrew，
-可以通过在终端中运行如下命令来安装：
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-或者使用官网安装程序：访问Node.js官网。下载macOS的.pkg安装包。打开下载的.pkg文件，按照提示完成安装。
-# Step 2: 验证安装：在命令提示符（cmd）或IDE终端（terminal）中输入 node -v 和 npm -v 来检查 Node.js 和 npm 是否正确安装。
+在飞牛应用中心「手动安装」选择生成的 `.fpk` 即可。卸载时脚本会**清理数据目录**，请联系备份。
+
+> 网络拓扑：NAT/公网留言 `http://<nas-ip>:28090`（server.py 端口，可改）。
+
+## 🏗️ 技术栈
+
+| 层 | 技术 |
+|---|---|
+| 前端 | React 18、TypeScript、Vite、Tailwind CSS、shadcn/ui、React Router、bun |
+| 后端 | Python `http.server`、SQLite（无 ORM） |
+| 导入导出 | [xlsx](https://github.com/SheetJS/sheetjs)、PapaParse 风格 CSV |
+| 图表 | Recharts（Dashboard 利用率） |
+| 部署 | 飞牛 OS **FPK**（fnpack）+ 统一网关 `/app/ipam` |
+
+## 📁 项目结构
+```
+src/
+  ├─ contexts/    # DataContext（数据源 + 冲突检测）、AuthContext（本地认证）
+  ├─ pages/       # Ip/Side/Subnet/Vlan/Pool/Device/Backup/Login 等页面
+  ├─ components/  # AppLayout、ui/(shadcn)、admin/、common/
+  └─ lib/         # util、import-xlsx、validate（CIDR/MAC/冲突检测）
+packaging/
+  ├─ templates-cgi/app/server.py   # 后端单文件服务（含 /app/ipam 前缀剥离）
+  └─ *.fpk                        # fnpack 产物
+scripts/          # FPK 打包脚本（gateway / v126 等）
 ```
 
-### 安装完后按照如下步骤操作：
+## 📄 License
 
-```
-# Step 1: 下载代码包
-# Step 2: 解压代码包
-# Step 3: 用IDE打开代码包，进入代码目录
-# Step 4: IDE终端输入命令行，安装依赖：npm i
-# Step 5: IDE终端输入命令行，启动开发服务器：npm run dev -- --host 127.0.0.1
-```
+MIT
 
-### 如何开发后端服务？
-
-配置环境变量，安装相关依赖
-如需使用数据库，请使用 supabase 官方版本或自行部署开源版本的 Supabase
-
-### 如何配置应用中的三方 API？
-
-具体三方 API 调用方法，请参考帮助文档：[源码导出](https://cloud.baidu.com/doc/MIAODA/s/Xmewgmsq7)，了解更多详细内容。
-
-## 了解更多
-
-您也可以查看帮助文档：[源码导出](https://cloud.baidu.com/doc/MIAODA/s/Xmewgmsq7)，了解更多详细内容。
+---
+> 提示：项目未提供独立 Docker / CI 配置；如需自行扩展部署方式，欢迎提 Issue / PR。
