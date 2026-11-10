@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>应用标题</title>
+  <script src="https://resource-static.cdn.bcebos.com/common/tailwindcss/3.4.16.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        container: { center: true, padding: '1.5rem', screens: { '2xl': '1280px' } },
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))',
+            input: 'hsl(var(--input))',
+            ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+            secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+            muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+            accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+            card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' }
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)'
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"PingFang SC"', '"Microsoft YaHei"', '"Helvetica Neue"', 'Arial', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* ===== FONT-FACE:BEGIN ===== */
+    /* 需要库外字体时在此写 @font-face（优先用系统字体栈，省加载） */
+    /* ===== FONT-FACE:END ===== */
+
+    /* ===== DESIGN-TOKENS:BEGIN =====
+       按 query 行业/气质替换下列 HSL 值；页面里只用语义类（bg-primary 等），不写死色。
+       成对的 *-foreground 必须与其底色满足 AA 对比度。 */
+    :root {
+      --radius: 0.5rem;
+      --background: 0 0% 100%;
+      --foreground: 222 47% 11%;
+      --card: 0 0% 100%;
+      --card-foreground: 222 47% 11%;
+      --primary: 222 47% 11%;
+      --primary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96%;
+      --secondary-foreground: 222 47% 11%;
+      --muted: 210 40% 96%;
+      --muted-foreground: 215 16% 47%;
+      --accent: 210 40% 96%;
+      --accent-foreground: 222 47% 11%;
+      --border: 214 32% 91%;
+      --input: 214 32% 91%;
+      --ring: 222 47% 11%;
+    }
+    /* ===== DESIGN-TOKENS:END ===== */
+
+    /* ===== APP-CSS:BEGIN ===== */
+    /* 本应用自定义样式 / 简单 @keyframes 动效写这里（自包含、可直接随 HTML 交付） */
+    html { scroll-behavior: smooth; }
+    /* 尊重用户的「减少动态效果」系统偏好 */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+    /* ===== APP-CSS:END ===== */
+  </style>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+  <!-- 页面内容区块：每个语义区块一个 <section id="...">，id 唯一 -->
+
+  <!-- ===== APP-JS:BEGIN =====
+       浏览器端交互逻辑写这里（导航/tab/表单/计算等）。随 HTML 直接交付，不依赖构建。 -->
+  <script>
+    // 交互逻辑
+  </script>
+  <!-- ===== APP-JS:END ===== -->
+</body>
+</html>

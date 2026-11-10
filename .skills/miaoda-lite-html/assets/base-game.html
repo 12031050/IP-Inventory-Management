@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>游戏标题</title>
+  <style>
+    /* ===== APP-CSS:BEGIN =====
+       游戏页面壳样式（画布全屏 + HUD 覆盖层）。画面本身由 canvas 绘制。 */
+    html, body {
+      margin: 0; height: 100%; overflow: hidden;
+      background: #0f1222; color: #ffffff;
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    #game { display: block; width: 100vw; height: 100vh; touch-action: none; }
+    #hud {
+      position: fixed; top: 14px; left: 14px; font-size: 16px; line-height: 1.5;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, .6); pointer-events: none;
+    }
+    #overlay {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+      background: rgba(15, 18, 34, .78); text-align: center; padding: 24px;
+    }
+    #overlay .title { font-size: 24px; font-weight: 700; }
+    #overlay .tip { font-size: 15px; opacity: .85; }
+    #overlay button {
+      font-size: 16px; padding: 12px 28px; border: 0; border-radius: 10px;
+      background: #4f7cff; color: #fff; cursor: pointer;
+    }
+    .hidden { display: none !important; }
+    /* ===== APP-CSS:END ===== */
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="hud">得分：<span id="score">0</span></div>
+  <div id="overlay">
+    <div class="title" id="overlay-title">游戏标题</div>
+    <div class="tip" id="overlay-tip">方向键 / 触屏移动，躲避障碍得分</div>
+    <button id="start-btn">开始游戏</button>
+  </div>
+
+  <!-- ===== APP-JS:BEGIN =====
+       游戏逻辑骨架：自适应画布 + 固定步长循环 + 状态机 + 键盘/触摸输入。
+       派生时在 update()/render() 内替换为真实玩法；需要可辨识主体 / 姿态时用图元组合出矢量形象，休闲 / 抽象 / 道具类用 emoji 精灵或纯几何即可。
+       3D / 第一人称派生：保留下方 rAF 循环 / 状态机 / 输入骨架，将 render() 换为 three.js（CDN 引入、免编译打包）场景渲染（相机 / 光照 / 几何体）。 -->
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const overlay = document.getElementById('overlay');
+    let W = 0, H = 0, dpr = 1;
+
+    // 画布随窗口自适应，按 devicePixelRatio 缩放保持清晰
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // 状态机 + 固定逻辑步长
+    const STATE = { READY: 0, PLAY: 1, OVER: 2 };
+    const STEP = 1000 / 60;
+    let state = STATE.READY, score = 0, last = 0, acc = 0;
+    const player = { x: 0, y: 0, r: 20, vx: 0, vy: 0, speed: 0.35 };
+    const keys = {};
+
+    function reset() {
+      score = 0; player.x = W / 2; player.y = H / 2; player.vx = player.vy = 0;
+      scoreEl.textContent = '0';
+    }
+
+    // 输入：键盘 + 触摸/点击
+    addEventListener('keydown', e => { keys[e.key] = true; });
+    addEventListener('keyup', e => { keys[e.key] = false; });
+    canvas.addEventListener('pointerdown', e => {
+      player.vx = (e.clientX - player.x) * 0.02;
+      player.vy = (e.clientY - player.y) * 0.02;
+    });
+
+    function update() {
+      if (keys['ArrowLeft']) player.vx -= player.speed;
+      if (keys['ArrowRight']) player.vx += player.speed;
+      if (keys['ArrowUp']) player.vy -= player.speed;
+      if (keys['ArrowDown']) player.vy += player.speed;
+      player.x += player.vx; player.y += player.vy;
+      player.vx *= 0.96; player.vy *= 0.96;
+      player.x = Math.max(player.r, Math.min(W - player.r, player.x));
+      player.y = Math.max(player.r, Math.min(H - player.r, player.y));
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = (player.r * 2) + 'px serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('🚀', player.x, player.y); // 示例精灵，派生时替换
+    }
+
+    function loop(ts) {
+      if (state !== STATE.PLAY) return;
+      acc += ts - last; last = ts;
+      while (acc >= STEP) { update(); acc -= STEP; }
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    // 结束态：派生时在失败 / 胜利条件处调用 gameOver()，展示结果并暴露重开入口（红线：可结束、可重开）
+    function gameOver() {
+      state = STATE.OVER;
+      document.getElementById('overlay-title').textContent = '游戏结束';
+      document.getElementById('overlay-tip').textContent = '得分 ' + score + '，点击重新开始';
+      document.getElementById('start-btn').textContent = '重新开始';
+      overlay.classList.remove('hidden');
+    }
+
+    function start() {
+      reset(); state = STATE.PLAY;
+      overlay.classList.add('hidden');
+      last = performance.now(); acc = 0;
+      requestAnimationFrame(loop);
+    }
+    document.getElementById('start-btn').addEventListener('click', start);
+  </script>
+  <!-- ===== APP-JS:END ===== -->
+</body>
+</html>
