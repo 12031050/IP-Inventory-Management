@@ -3,6 +3,29 @@
 
 面向弱电运维 / 飞牛 OS（fnOS）NAS 的一体化 **IP 地址管理（IPAM）** 工具。前端 React 18 + Vite + Tailwind + shadcn/ui，后端为轻量 Python `http.server` + **SQLite** 单文件服务，数据**本地存储**、离线可用，可打包为 **FPK** 一键部署到飞牛 NAS，也支持纯前端本地浏览器运行（localStorage 兜底）。
 
+## ⬇️ 下载安装包（最新版 v1.2.7）
+
+<div align="center">
+
+[![Download FPK](https://img.shields.io/badge/Download-FPK_v1.2.7-2f6bff?style=for-the-badge&logo=github)](https://github.com/12031050/IP-Inventory-Management/releases/latest/download/ipam-1.2.7.fpk)
+[![Download Page](https://img.shields.io/badge/Download_Page-Open-7a5cff?style=for-the-badge)](https://12031050.github.io/IP-Inventory-Management/)
+[![Releases](https://img.shields.io/badge/Releases-Changelog-181717?style=for-the-badge&logo=github)](https://github.com/12031050/IP-Inventory-Management/releases/latest)
+
+</div>
+
+| 项 | 值 |
+|---|---|
+| 安装包 | [`ipam-1.2.7.fpk`](https://github.com/12031050/IP-Inventory-Management/releases/latest/download/ipam-1.2.7.fpk) |
+| 版本 / 日期 | **1.2.7** · 2026-11-12 |
+| 大小 / MD5 | 1.45 MB（1,517,931 字节）· `537851d776ec06cbcdf2e1fe7775fb35` |
+| 适用 | 飞牛 OS（fnOS）NAS ·「应用中心 → 手动安装」 |
+
+> 🌐 **在线下载页**：https://12031050.github.io/IP-Inventory-Management/ （版本信息、安装步骤、校验值、注意事项）
+> 📦 **Release 下载专区**：https://github.com/12031050/IP-Inventory-Management/releases/latest （附件 + 更新日志）
+> 📁 仓库内原文件：[`packaging/ipam-1.2.7.fpk`](packaging/ipam-1.2.7.fpk)
+
+**升级前请先备份 `ipam.db`**（卸载重装会清空数据目录，请走「升级」）。安装后从飞牛桌面 / 应用中心打开，不要直连 `http://<nas-ip>:28090`；首次授权会进入「创建管理员帐号」向导。
+
 ## ✨ 功能特性
 
 - **网络概览 Dashboard**：IP 总数、已用率、子网 / VLAN 数量统计与利用率进度条
