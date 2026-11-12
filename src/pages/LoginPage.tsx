@@ -56,6 +56,8 @@ export default function LoginPage() {
     setNasAuthLoading(true);
     const res = await loginWithNas();
     setNasAuthLoading(false);
+    // 首次部署或旧版本升级：交由 App 切换到「创建管理员帐号」向导，不弹错误
+    if (res.needSetup) return;
     if (!res.ok) {
       toast.error(res.error ?? '飞牛系统授权登录失败');
       return;

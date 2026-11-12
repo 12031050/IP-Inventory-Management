@@ -5,14 +5,18 @@
 功能：
 1. 数据持久化存储到 SQLite（位于 NAS 应用目录 /var/apps/ipam/var/ipam.db）
 2. 飞牛统一网关身份识别（仅信任 X-Trim-Username / X-Trim-Userid / X-Trim-Isadmin）
-3. NAS 免密授权登录与本地账号验证 API
-4. 静态 SPA 页面分发与无刷新路由回退
+3. 首次部署的「创建管理员帐号」向导、NAS 免密授权登录与账号密码验证 API
+4. 密码 PBKDF2 加盐哈希存储，接口不回传密码
+5. 静态 SPA 页面分发与无刷新路由回退
 """
 
 import sys
 import os
 import re
 import json
+import hmac
+import hashlib
+import secrets
 import sqlite3
 import socket
 import threading
@@ -50,6 +54,43 @@ DB_PATH = get_db_path()
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+
+# 密码加盐哈希：pbkdf2_sha256$<iterations>$<salt_hex>$<digest_hex>
+PBKDF2_ITERATIONS = 120000
+PASSWORD_HASH_PREFIX = 'pbkdf2_sha256$'
+
+def hash_password(password):
+    salt = secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, PBKDF2_ITERATIONS)
+    return f'{PASSWORD_HASH_PREFIX}{PBKDF2_ITERATIONS}${salt.hex()}${digest.hex()}'
+
+def verify_password(password, stored):
+    """校验密码；兼容旧版本明文存储，由调用方在成功后透明升级为哈希。"""
+    if not stored:
+        return False
+    if stored.startswith(PASSWORD_HASH_PREFIX):
+        try:
+            _, iterations, salt_hex, digest_hex = stored.split('$', 3)
+            digest = hashlib.pbkdf2_hmac(
+                'sha256', password.encode('utf-8'), bytes.fromhex(salt_hex), int(iterations)
+            )
+            return hmac.compare_digest(digest.hex(), digest_hex)
+        except Exception:
+            return False
+    return hmac.compare_digest(password, stored)
+
+def user_payload(row, last_login_at=None):
+    """返回给前端的用户信息，永不包含密码（明文或哈希）。"""
+    return {
+        "id": row["id"],
+        "username": row["username"],
+        "realName": row["real_name"],
+        "roleId": row["role_id"],
+        "status": row["status"],
+        "isSuperAdmin": bool(row["is_super_admin"]),
+        "createdAt": row["created_at"],
+        "lastLoginAt": last_login_at if last_login_at is not None else (row["last_login_at"] or ""),
+    }
 
 # 初始化 SQLite 数据库
 def init_db():
@@ -201,7 +242,7 @@ def init_db():
     cur.execute("INSERT OR IGNORE INTO roles (id, name, description, permissions, is_system, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                 ('role-operator', '运维人员', '可管理 IP 与网络资产，无权限修改用户与角色配置', operator_perms, 1, '2026-01-01T00:00:00.000Z'))
 
-    # 不预置任何用户账户：首个通过飞牛系统授权登录的 NAS 用户自动成为超级管理员
+    # 不预置任何用户账户：首个通过「创建管理员帐号」向导设置密码的 NAS 用户成为超级管理员
     # 清理历史版本遗留的内置 admin 账户（兼容 created_at/last_login_at 为 NULL 或不同时间的遗留记录）
     try:
         cur.execute(
@@ -263,17 +304,14 @@ class IPAMRequestHandler(SimpleHTTPRequestHandler):
         self.send_response(status)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(body)))
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Trim-Username')
+        self.send_header('Cache-Control', 'no-store')
+        # 应用与统一网关同源，不开放跨域；避免第三方页面伪造 X-Trim-* 身份头
         self.end_headers()
         self.wfile.write(body)
 
     def do_OPTIONS(self):
         self.send_response(204)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Trim-Username')
+        self.send_header('Allow', 'GET, POST, OPTIONS')
         self.end_headers()
 
     def do_GET(self):
@@ -428,7 +466,6 @@ class IPAMRequestHandler(SimpleHTTPRequestHandler):
                     "id": r["id"],
                     "username": r["username"],
                     "realName": r["real_name"] or "",
-                    "password": r["password"] or "",
                     "roleId": r["role_id"] or "",
                     "status": r["status"] or "active",
                     "isSuperAdmin": bool(r["is_super_admin"]),
@@ -515,11 +552,12 @@ class IPAMRequestHandler(SimpleHTTPRequestHandler):
             req_data = json.loads(body.decode('utf-8'))
         except Exception:
             req_data = {}
+        # /api/users、/api/roles 接收列表；其余接口只读取字典字段
+        req_fields = req_data if isinstance(req_data, dict) else {}
 
         # 1. API: 飞牛 NAS 授权登录（仅信任统一网关注入的 X-Trim-* 身份头）
         if path == '/api/auth/nas-login':
             # 身份只来源于网关注入的 X-Trim-Username 头；绝不接受请求体自报的用户名。
-            # 无网关身份（TCP 端口直连 / 本地调试 / 未登录）一律拒绝，返回 401。
             username = (self._gateway_identity() or '').strip()
             if not username:
                 self._send_json(401, {"ok": False, "error": "未检测到飞牛系统登录身份，请通过飞牛桌面打开本应用"})
@@ -528,55 +566,107 @@ class IPAMRequestHandler(SimpleHTTPRequestHandler):
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
-
             cur.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", (username,))
             user = cur.fetchone()
+            cur.execute("SELECT COUNT(*) FROM users")
+            total = cur.fetchone()[0]
+            nas_user = {"username": username, "hostname": socket.gethostname() or ""}
+
+            # 首次部署：不直接建号，先引导「创建管理员帐号」并设置密码
+            if total == 0:
+                conn.close()
+                self._send_json(200, {"ok": False, "needSetup": True, "setupMode": "create", "nasUser": nas_user})
+                return
+
+            # 旧版本升级：超级管理员密码为空时必须先补设密码，避免空密码任意登录
+            if user and bool(user["is_super_admin"]) and not (user["password"] or ""):
+                conn.close()
+                self._send_json(200, {"ok": False, "needSetup": True, "setupMode": "setPassword", "nasUser": nas_user})
+                return
+
             now = now_iso()
             if not user:
-                # 判断是否为首个用户：首个通过飞牛授权登录的用户自动成为超级管理员
-                cur.execute("SELECT COUNT(*) FROM users")
-                total = cur.fetchone()[0]
-                is_first = (total == 0)
-                role_id = 'role-admin' if is_first else 'role-viewer'
-                is_super = 1 if is_first else 0
+                # 非首个 NAS 用户：只读访客且不设密码，仅允许通过网关授权登录
                 user_id = f"user-{username}"
-                real_name = f"超级管理员 ({username})" if is_first else f"NAS 用户 ({username})"
                 cur.execute(
                     "INSERT INTO users (id, username, real_name, password, role_id, status, is_super_admin, created_at, last_login_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (user_id, username, real_name, "", role_id, 'active', is_super, now, now)
+                    (user_id, username, f"NAS 用户 ({username})", "", "role-viewer", 'active', 0, now, now)
                 )
                 conn.commit()
                 cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
                 user = cur.fetchone()
             else:
+                if user["status"] == 'disabled':
+                    conn.close()
+                    self._send_json(403, {"ok": False, "error": "该账号已被禁用"})
+                    return
                 cur.execute("UPDATE users SET last_login_at = ? WHERE id = ?", (now, user["id"]))
                 conn.commit()
 
-            res_user = {
-                "id": user["id"],
-                "username": user["username"],
-                "realName": user["real_name"],
-                "roleId": user["role_id"],
-                "status": user["status"],
-                "isSuperAdmin": bool(user["is_super_admin"]),
-                "createdAt": user["created_at"],
-                "lastLoginAt": now
-            }
+            res_user = user_payload(user, now)
             conn.close()
             self._send_json(200, {"ok": True, "user": res_user})
             return
 
-        # 2. API: 账号密码登录
+        # 1.5. API: 首次部署创建管理员 / 旧版本补设管理员密码
+        if path == '/api/auth/setup-admin':
+            username = (self._gateway_identity() or '').strip()
+            if not username:
+                self._send_json(401, {"ok": False, "error": "未检测到飞牛系统登录身份，请通过飞牛桌面打开本应用"})
+                return
+            password = str(req_fields.get('password') or '')
+            if len(password) < 6:
+                self._send_json(400, {"ok": False, "error": "密码至少 6 位"})
+                return
+
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", (username,))
+            user = cur.fetchone()
+            cur.execute("SELECT COUNT(*) FROM users")
+            total = cur.fetchone()[0]
+            now = now_iso()
+            hashed = hash_password(password)
+
+            try:
+                if total == 0:
+                    user_id = f"user-{username}"
+                    cur.execute(
+                        "INSERT INTO users (id, username, real_name, password, role_id, status, is_super_admin, created_at, last_login_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (user_id, username, f"超级管理员 ({username})", hashed, "role-admin", 'active', 1, now, now)
+                    )
+                elif user and bool(user["is_super_admin"]) and not (user["password"] or ""):
+                    cur.execute("UPDATE users SET password = ?, last_login_at = ? WHERE id = ?",
+                                (hashed, now, user["id"]))
+                else:
+                    conn.close()
+                    self._send_json(403, {"ok": False, "error": "系统已完成初始化，无需重复设置管理员密码"})
+                    return
+                conn.commit()
+            except sqlite3.IntegrityError:
+                conn.close()
+                self._send_json(409, {"ok": False, "error": "管理员账号初始化冲突，请刷新后重试"})
+                return
+
+            cur.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", (username,))
+            created = cur.fetchone()
+            conn.close()
+            self._send_json(200, {"ok": True, "user": user_payload(created, now)})
+            return
+
+        # 2. API: 账号密码登录（空密码账号一律拒绝，避免绕过飞牛登录态）
         if path == '/api/auth/login':
-            username = req_data.get('username', '').strip()
-            password = req_data.get('password', '')
+            username = str(req_fields.get('username') or '').strip()
+            password = str(req_fields.get('password') or '')
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
 
             cur.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", (username,))
             user = cur.fetchone()
-            if not user or (user["password"] and user["password"] != password):
+            stored = (user["password"] or "") if user else ""
+            if not user or not stored or not verify_password(password, stored):
                 conn.close()
                 self._send_json(401, {"ok": False, "error": "用户名或密码错误"})
                 return
@@ -587,19 +677,13 @@ class IPAMRequestHandler(SimpleHTTPRequestHandler):
                 return
 
             now = now_iso()
+            # 旧版本明文密码在首次成功登录时透明升级为加盐哈希
+            if not stored.startswith(PASSWORD_HASH_PREFIX):
+                cur.execute("UPDATE users SET password = ? WHERE id = ?", (hash_password(password), user["id"]))
             cur.execute("UPDATE users SET last_login_at = ? WHERE id = ?", (now, user["id"]))
             conn.commit()
 
-            res_user = {
-                "id": user["id"],
-                "username": user["username"],
-                "realName": user["real_name"],
-                "roleId": user["role_id"],
-                "status": user["status"],
-                "isSuperAdmin": bool(user["is_super_admin"]),
-                "createdAt": user["created_at"],
-                "lastLoginAt": now
-            }
+            res_user = user_payload(user, now)
             conn.close()
             self._send_json(200, {"ok": True, "user": res_user})
             return
@@ -669,15 +753,30 @@ class IPAMRequestHandler(SimpleHTTPRequestHandler):
             self._send_json(200, {"ok": True})
             return
 
-        # 4. API: 保存全部用户（全量替换，含超级管理员标识）
+        # 4. API: 保存全部用户（全量替换；密码与超管标记由后端把持）
         if path == '/api/users':
+            if not isinstance(req_data, list):
+                self._send_json(400, {"ok": False, "error": "用户数据格式错误"})
+                return
             conn = sqlite3.connect(DB_PATH)
             cur = conn.cursor()
+            # 前端不再持有密码（GET /api/users 不下发），全量写回时必须保留库中原有值，
+            # 否则会把刚设置的管理员密码清空，重新造成空密码任意登录；超管标记同理不接受前端指定。
+            cur.execute("SELECT id, password, is_super_admin FROM users")
+            existing = {row[0]: (row[1] or "", row[2] or 0) for row in cur.fetchall()}
             cur.execute("DELETE FROM users")
             for r in req_data:
+                uid = r.get("id")
+                old_pwd, old_super = existing.get(uid, ("", 0))
+                incoming = str(r.get("password") or "")
+                if incoming:
+                    pwd = incoming if incoming.startswith(PASSWORD_HASH_PREFIX) else hash_password(incoming)
+                else:
+                    pwd = old_pwd
                 cur.execute(
                     "INSERT INTO users (id, username, real_name, password, role_id, status, is_super_admin, created_at, last_login_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (r.get("id"), r.get("username"), r.get("realName"), r.get("password"), r.get("roleId"), r.get("status", "active"), 1 if r.get("isSuperAdmin") else 0, r.get("createdAt"), r.get("lastLoginAt"))
+                    (uid, r.get("username"), r.get("realName"), pwd, r.get("roleId"),
+                     r.get("status", "active"), old_super, r.get("createdAt"), r.get("lastLoginAt"))
                 )
             conn.commit()
             conn.close()

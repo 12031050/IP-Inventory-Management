@@ -1,3 +1,7 @@
+# 欢迎使用你的秒哒应用代码包
+秒哒应用链接
+    URL:https://www.miaoda.cn/projects/app-e48he9p4w001
+
 # IP-Inventory-Management · IP 台账管理系统
 
 面向弱电运维 / 飞牛 OS（fnOS）NAS 的一体化 **IP 地址管理（IPAM）** 工具。前端 React 18 + Vite + Tailwind + shadcn/ui，后端为轻量 Python `http.server` + **SQLite** 单文件服务，数据**本地存储**、离线可用，可打包为 **FPK** 一键部署到飞牛 NAS，也支持纯前端本地浏览器运行（localStorage 兜底）。
@@ -12,7 +16,7 @@
 - **设备资产**：设备 IP / MAC / 类型 / 位置管理
 - **导入导出**：IP / 子网 / 设备 **CSV 导入、Excel 导入导出（xlsx）**，带列头映射
 - **备份恢复**：导出 / 导入 **JSON 全量备份**、历史备份记录
-- **登录认证**：本地登录注册（localStorage；fnOS 统一部署下走 `/api/auth/nas-login` 网关头）+ 账号密码登录、首个用户自动超管
+- **登录认证**：飞牛系统账号授权登录（`/api/auth/nas-login` 网关头）+ 账号密码登录；**首次部署授权后进入「创建管理员帐号」向导**，为首个 NAS 用户设置密码并自动成为超级管理员，密码以 PBKDF2 加盐哈希存入 SQLite，接口不下发密码
 - 深湛运维**暗色主题**，侧边栏布局，响应式适配平板 / 移动端
 
 ## 🚀 本地运行
@@ -44,14 +48,19 @@ pnpm lint           # tsgo 类型检查 + biome lint + tailwindcss 语法检查
 
 ## 📦 飞牛 OS（fnOS）部署
 
-FPK 打包产物在 `packaging/` 下（如 `packaging/ipam-1.2.6.fpk`）。
+FPK 打包产物在 `packaging/` 下（当前 `packaging/ipam-1.2.7.fpk`，并复制一份 `packaging/ipam.fpk`）。
 ```bash
-# 以网关模式打包（Vite 会加 --base /app/ipam/ 前缀，server.py 会剥离前缀路由）
-python3 scripts/package-fpk-gateway.py
+# 统一网关模式打包（Vite 加 --base /app/ipam/ 前缀，server.py 剥离前缀路由）
+python3 scripts/package-fpk-v126.py      # 当前版本 1.2.7
 ```
 在飞牛应用中心「手动安装」选择生成的 `.fpk` 即可。卸载时脚本会**清理数据目录**，请联系备份。
 
-> 网络拓扑：NAT/公网留言 `http://<nas-ip>:28090`（server.py 端口，可改）。
+> `28090` 仅用于健康检查，不携带飞牛统一网关的身份头。**请从飞牛桌面 / 应用中心打开本应用**完成授权登录；直接访问 `http://<nas-ip>:28090` 会因缺少 `X-Trim-Username` 而无法授权。
+
+打包前可先跑登录链路回归（隔离临时目录，不改动项目数据）：
+```bash
+python3 scripts/verify-setup-admin.py   # 全部通过时退出码 0
+```
 
 ## 🏗️ 技术栈
 
@@ -67,13 +76,13 @@ python3 scripts/package-fpk-gateway.py
 ```
 src/
   ├─ contexts/    # DataContext（数据源 + 冲突检测）、AuthContext（本地认证）
-  ├─ pages/       # Ip/Side/Subnet/Vlan/Pool/Device/Backup/Login 等页面
+  ├─ pages/       # Ip/Subnet/Vlan/Pool/Device/Backup/Login/SetupAdmin 等页面
   ├─ components/  # AppLayout、ui/(shadcn)、admin/、common/
   └─ lib/         # util、import-xlsx、validate（CIDR/MAC/冲突检测）
 packaging/
   ├─ templates-cgi/app/server.py   # 后端单文件服务（含 /app/ipam 前缀剥离）
   └─ *.fpk                        # fnpack 产物
-scripts/          # FPK 打包脚本（gateway / v126 等）
+scripts/          # FPK 打包脚本（gateway / v126 等）与 verify-setup-admin.py 登录链路回归
 ```
 
 ## 📄 License

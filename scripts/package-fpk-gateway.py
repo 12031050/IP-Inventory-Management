@@ -7,7 +7,7 @@
 - server.py 监听 ${TRIM_APPDEST}/app.sock（TCP 仅健康检查）
 - 产物：packaging/ipam-1.2.0.fpk 并复制为 packaging/ipam.fpk
 """
-import os, sys, json, tarfile, hashlib, shutil, subprocess
+import os, sys, json, tarfile, hashlib, shutil, subprocess, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
@@ -16,8 +16,8 @@ COMMON = os.path.join(ROOT, "packaging", "fnos-app", "ipam")
 V113 = os.path.join(ROOT, "packaging", "build_v113", "fpk_stage")
 OUT_DIR = os.path.join(ROOT, "packaging")
 
-APP_STAGE = "/tmp/ipam120_app"
-STAGE = "/tmp/ipam120_stage"
+APP_STAGE = os.path.join(tempfile.gettempdir(), "ipam120_app")
+STAGE = os.path.join(tempfile.gettempdir(), "ipam120_stage")
 VERSION = "1.2.0"
 
 

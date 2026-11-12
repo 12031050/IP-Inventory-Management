@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { readJSON, writeJSON, genId, nowISO } from '@/lib/storage';
-import { loginWithNasApi, loginWithPasswordApi, getNasUser, getUsersApi, saveUsersApi, getRolesApi, saveRolesApi, type NasUserInfo } from '@/lib/api';
+import { loginWithNasApi, loginWithPasswordApi, setupAdminApi, getNasUser, getUsersApi, saveUsersApi, getRolesApi, saveRolesApi, type NasUserInfo, type SetupMode } from '@/lib/api';
 import {
   type User,
   type Role,
@@ -87,8 +87,14 @@ interface AuthContextType {
   hasPermission: (perm: PermissionKey) => boolean;
   // 认证
   login: (username: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  loginWithNas: () => Promise<{ ok: boolean; error?: string }>;
+  loginWithNas: () => Promise<{ ok: boolean; error?: string; needSetup?: boolean }>;
   logout: () => void;
+  // 首次部署 / 升级后的「创建管理员帐号」向导
+  setupRequired: boolean;
+  setupMode: SetupMode | null;
+  setupUsername: string;
+  setupAdmin: (password: string) => Promise<{ ok: boolean; error?: string }>;
+  cancelSetup: () => void;
   // 用户管理
   users: User[];
   addUser: (user: { username: string; realName: string; password: string; roleId: string }) => { ok: boolean; error?: string };
@@ -109,6 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [nasInfo, setNasInfo] = useState<NasUserInfo | null>(null);
+  const [setupRequired, setSetupRequired] = useState(false);
+  const [setupMode, setSetupMode] = useState<SetupMode | null>(null);
+  const [setupUsername, setSetupUsername] = useState('');
 
   // 初始化角色
   const [roles, setRoles] = useState<Role[]>(() => {
@@ -153,15 +162,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   // 同步状态到 localStorage 与 SQLite 后端
+  // 未登录时不向后端写回，避免页面刚加载时本地空数据覆盖掉服务端用户/角色表
   useEffect(() => {
     writeJSON(ROLES_KEY, roles);
-    if (!loading) saveRolesApi(roles);
-  }, [roles, loading]);
+    if (!loading && currentUserId) saveRolesApi(roles);
+  }, [roles, loading, currentUserId]);
 
   useEffect(() => {
     writeJSON(USERS_KEY, users);
-    if (!loading) saveUsersApi(users);
-  }, [users, loading]);
+    if (!loading && currentUserId) saveUsersApi(users);
+  }, [users, loading, currentUserId]);
 
   // 会话初始化与 NAS 环境检测，并从 SQLite 加载用户/角色（跨设备持久化）
   useEffect(() => {
@@ -271,52 +281,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [currentUser]);
 
+  // 统一建立本地会话；用户/角色数据仍以后端 SQLite 为准
+  const establishSession = (loggedUser: User, loginType: 'nas' | 'password') => {
+    setUsers((prev) => {
+      const idx = prev.findIndex((x) => x.id === loggedUser.id || x.username === loggedUser.username);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], ...loggedUser, lastLoginAt: nowISO() };
+        return next;
+      }
+      return [...prev, loggedUser];
+    });
+    writeJSON(SESSION_KEY, loggedUser.id);
+    writeJSON(SESSION_LOGIN_TYPE_KEY, loginType);
+    setCurrentUserId(loggedUser.id);
+  };
+
   const login = async (u: string, p: string) => {
     const res = await loginWithPasswordApi(u, p);
     if (!res.ok || !res.user) {
       return { ok: false, error: res.error || '用户名或密码错误' };
     }
-    const loggedUser = res.user;
-    setUsers((prev) => {
-      const idx = prev.findIndex((x) => x.id === loggedUser.id || x.username === loggedUser.username);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], lastLoginAt: nowISO() };
-        return next;
-      }
-      return [...prev, loggedUser];
-    });
-    writeJSON(SESSION_KEY, loggedUser.id);
-    writeJSON(SESSION_LOGIN_TYPE_KEY, 'password');
-    setCurrentUserId(loggedUser.id);
+    establishSession(res.user, 'password');
     return { ok: true };
   };
 
   const loginWithNas = async () => {
     const res = await loginWithNasApi();
+    // 后端判定需要先创建管理员 / 补设密码，切到向导页而不是报错
+    if (res.needSetup) {
+      setSetupMode(res.setupMode ?? 'create');
+      setSetupUsername(res.nasUser?.username || nasInfo?.username || '');
+      setSetupRequired(true);
+      return { ok: true, needSetup: true };
+    }
     if (!res.ok || !res.user) {
       return { ok: false, error: res.error || '飞牛 NAS 授权登录失败' };
     }
-    const loggedUser = res.user;
-    setUsers((prev) => {
-      const idx = prev.findIndex((x) => x.id === loggedUser.id || x.username === loggedUser.username);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], lastLoginAt: nowISO() };
-        return next;
-      }
-      return [...prev, loggedUser];
-    });
-    writeJSON(SESSION_KEY, loggedUser.id);
-    writeJSON(SESSION_LOGIN_TYPE_KEY, 'nas');
-    setCurrentUserId(loggedUser.id);
+    establishSession(res.user, 'nas');
     return { ok: true };
+  };
+
+  const setupAdmin = async (password: string) => {
+    const res = await setupAdminApi(password);
+    if (!res.ok || !res.user) {
+      return { ok: false, error: res.error || '创建管理员账号失败' };
+    }
+    establishSession(res.user, 'nas');
+    setSetupRequired(false);
+    setSetupMode(null);
+    return { ok: true };
+  };
+
+  const cancelSetup = () => {
+    setSetupRequired(false);
+    setSetupMode(null);
+    setSetupUsername('');
   };
 
   const logout = () => {
     writeJSON(SESSION_KEY, null);
     writeJSON(SESSION_LOGIN_TYPE_KEY, null);
     setCurrentUserId(null);
+    cancelSetup();
   };
 
   // ---- 用户 CRUD ----
@@ -461,6 +488,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         loginWithNas,
         logout,
+        setupRequired,
+        setupMode,
+        setupUsername,
+        setupAdmin,
+        cancelSetup,
         users,
         addUser,
         updateUser,

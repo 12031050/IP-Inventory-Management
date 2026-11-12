@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-飞牛 fnOS IPAM .fpk 打包脚本（统一网关模式 · v1.2.0）
+飞牛 fnOS IPAM .fpk 打包脚本（统一网关模式 · v1.2.7）
 - 前端以 /app/ipam/ 为 base 构建（静态资源带网关前缀，规避白屏）
 - app/ui/config 使用 gatewayPrefix/gatewaySocket 统一网关入口
 - server.py 监听 ${TRIM_APPDEST}/app.sock（TCP 仅健康检查）
-- 产物：packaging/ipam-1.2.0.fpk 并复制为 packaging/ipam.fpk
+- 1.2.7：首次部署「创建管理员帐号」向导 + 密码加盐哈希
+- 产物：packaging/ipam-1.2.7.fpk 并复制为 packaging/ipam.fpk
 """
-import os, sys, json, tarfile, hashlib, shutil, subprocess
+import os, sys, json, tarfile, hashlib, shutil, subprocess, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
@@ -16,9 +17,9 @@ COMMON = os.path.join(ROOT, "packaging", "fnos-app", "ipam")
 V113 = os.path.join(ROOT, "packaging", "build_v113", "fpk_stage")
 OUT_DIR = os.path.join(ROOT, "packaging")
 
-APP_STAGE = "/tmp/ipam120_app"
-STAGE = "/tmp/ipam120_stage"
-VERSION = "1.2.6"
+APP_STAGE = os.path.join(tempfile.gettempdir(), "ipam127_app")
+STAGE = os.path.join(tempfile.gettempdir(), "ipam127_stage")
+VERSION = "1.2.7"
 
 
 def sh(cmd):

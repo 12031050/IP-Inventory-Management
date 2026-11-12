@@ -8,7 +8,8 @@ build/
 # 压缩 / 打包产物
 *.tgz
 *.fpk
-!packaging/*.fpk   # FPK 产物如需跟踪可去掉这行
+# FPK 产物需要随仓库分发，故放开 packaging 下一级的 fpk
+!packaging/*.fpk
 
 # ===== 环境与密钥 =====
 .env
@@ -53,6 +54,8 @@ coverage/
 .pytest_cache/
 
 # ===== Cache / 工具 =====
+# 本地工作区记忆与工具数据，不纳入版本库
+.workbuddy/
 .cache/
 .parcel-cache/
 .next/

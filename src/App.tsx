@@ -5,12 +5,13 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
 import LoginPage from '@/pages/LoginPage';
+import SetupAdminPage from '@/pages/SetupAdminPage';
 import AppLayout from '@/components/layouts/AppLayout';
 
 import { routes } from './routes';
 
 const AppRoutes: React.FC = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, setupRequired } = useAuth();
 
   if (loading) {
     return (
@@ -22,6 +23,9 @@ const AppRoutes: React.FC = () => {
       </div>
     );
   }
+
+  // 首次部署 / 旧版本升级：授权后先完成创建管理员向导，再进入主界面
+  if (setupRequired) return <SetupAdminPage />;
 
   if (!isAuthenticated) return <LoginPage />;
 

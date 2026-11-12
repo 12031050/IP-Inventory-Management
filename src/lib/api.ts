@@ -93,8 +93,20 @@ export async function getNasUser(): Promise<NasUserInfo> {
   return { available: false };
 }
 
+export type SetupMode = 'create' | 'setPassword';
+
+export interface NasLoginResult {
+  ok: boolean;
+  user?: User;
+  error?: string;
+  // 首次部署 / 旧版本升级时，后端要求先完成「创建管理员帐号」向导
+  needSetup?: boolean;
+  setupMode?: SetupMode;
+  nasUser?: { username: string; hostname?: string };
+}
+
 // 飞牛 NAS 免密授权登录（身份完全由网关注入的 X-Trim-* Header 决定，前端不携带任何自报用户名）
-export async function loginWithNasApi(): Promise<{ ok: boolean; user?: User; error?: string }> {
+export async function loginWithNasApi(): Promise<NasLoginResult> {
   try {
     const res = await apiFetch('/api/auth/nas-login', {
       method: 'POST',
@@ -102,16 +114,42 @@ export async function loginWithNasApi(): Promise<{ ok: boolean; user?: User; err
       body: JSON.stringify({}),
       credentials: 'include',
     });
-    if (res.ok) {
-      const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok && data.user) {
       return { ok: true, user: data.user };
     }
-    const errData = await res.json().catch(() => ({}));
-    return { ok: false, error: errData.error || '飞牛 NAS 授权登录失败' };
+    if (res.ok && data.needSetup) {
+      return {
+        ok: false,
+        needSetup: true,
+        setupMode: data.setupMode === 'setPassword' ? 'setPassword' : 'create',
+        nasUser: data.nasUser,
+      };
+    }
+    return { ok: false, error: data.error || '飞牛 NAS 授权登录失败' };
   } catch {
     // 后端无响应
   }
   return { ok: false, error: '后端服务不可用，无法进行飞牛 NAS 授权登录' };
+}
+
+// 首次部署创建管理员 / 旧版本补设管理员密码（身份仍由网关注入头决定）
+export async function setupAdminApi(password: string): Promise<{ ok: boolean; user?: User; error?: string }> {
+  try {
+    const res = await apiFetch('/api/auth/setup-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+      credentials: 'include',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok && data.user) {
+      return { ok: true, user: data.user };
+    }
+    return { ok: false, error: data.error || '创建管理员账号失败' };
+  } catch {
+    return { ok: false, error: '后端服务不可用，无法创建管理员账号' };
+  }
 }
 
 // 本地密码登录
@@ -138,7 +176,9 @@ export async function loginWithPasswordApi(
     const user = users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase());
     if (!user) return { ok: false, error: '后端服务不可用' };
     if (user.status === 'disabled') return { ok: false, error: '该账号已被禁用' };
-    if (user.password && user.password !== password) return { ok: false, error: '用户名或密码错误' };
+    // 服务端账号不下发密码，无密码时严禁放行（否则等于任意密码可登录）
+    if (!user.password) return { ok: false, error: '该账号未设置密码，请使用飞牛系统授权登录' };
+    if (user.password !== password) return { ok: false, error: '用户名或密码错误' };
     return { ok: true, user };
   }
 }
