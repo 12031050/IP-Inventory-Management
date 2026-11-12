@@ -8,7 +8,7 @@
 <div align="center">
 
 [![Download FPK](https://img.shields.io/badge/Download-FPK_v1.2.7-2f6bff?style=for-the-badge&logo=github)](https://github.com/12031050/IP-Inventory-Management/releases/latest/download/ipam-1.2.7.fpk)
-[![Source File](https://img.shields.io/badge/Source_File-Browse-7a5cff?style=for-the-badge&logo=github)](https://github.com/12031050/IP-Inventory-Management/blob/master/packaging/ipam-1.2.7.fpk)
+[![Download Page](https://img.shields.io/badge/Online_Download_Page-Open-7a5cff?style=for-the-badge)](https://12031050.github.io/IP-Inventory-Management/)
 [![Releases](https://img.shields.io/badge/Releases-Changelog-181717?style=for-the-badge&logo=github)](https://github.com/12031050/IP-Inventory-Management/releases/latest)
 
 </div>
@@ -20,9 +20,11 @@
 | 大小 / MD5 | 1.45 MB（1,517,931 字节）· `537851d776ec06cbcdf2e1fe7775fb35` |
 | 适用 | 飞牛 OS（fnOS）NAS ·「应用中心 → 手动安装」 |
 
-> 🌐 **在线下载页**：https://12031050.github.io/IP-Inventory-Management/ （GitHub Pages 首次构建排队中，稍后自动上线；含版本信息、安装步骤、校验值、注意事项）
+> 🌐 **在线下载页**：https://12031050.github.io/IP-Inventory-Management/ （含版本信息、安装步骤、校验值、注意事项）
 > 📦 **Release 下载专区**：https://github.com/12031050/IP-Inventory-Management/releases/latest （附件 + 更新日志）
 > 📁 仓库内原文件：[`packaging/ipam-1.2.7.fpk`](packaging/ipam-1.2.7.fpk)
+
+> 🛠 下载页源文件为 [`docs/index.html`](docs/index.html)，发布在 `gh-pages` 分支；改动后运行 `python3 scripts/publish-download-page.py` 重新发布。
 
 **升级前请先备份 `ipam.db`**（卸载重装会清空数据目录，请走「升级」）。安装后从飞牛桌面 / 应用中心打开，不要直连 `http://<nas-ip>:28090`；首次授权会进入「创建管理员帐号」向导。
 
