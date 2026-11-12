@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="IP 台账管理系统 飞牛 fnOS FPK 安装包下载 · v1.2.7" />
+<title>下载 IP 台账管理 · 飞牛 fnOS 安装包</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f6bff'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='Arial'%3EIP%3C/text%3E%3C/svg%3E" />
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#141923; --panel-2:#1b2230; --line:#283143;
+    --text:#eef2f9; --muted:#98a4b8; --accent:#4b82ff; --accent-2:#7a5cff;
+    --ok:#42d392; --warn:#f5b74a; --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:radial-gradient(680px 380px at 15% -8%,rgba(75,130,255,.20),transparent 70%),
+               radial-gradient(620px 340px at 88% 4%,rgba(122,92,255,.16),transparent 70%);
+  }
+  .wrap{position:relative; z-index:1; max-width:920px; margin:0 auto; padding:0 22px 80px}
+  header{display:flex; align-items:center; gap:12px; padding:34px 0 8px}
+  .logo{
+    width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 8px 26px rgba(75,130,255,.30); font-weight:800; font-size:15px; letter-spacing:.5px;
+  }
+  .brand{font-weight:700;font-size:17px;letter-spacing:.3px}
+  .brand small{display:block;font-weight:400;font-size:12px;color:var(--muted);letter-spacing:0}
+  .top-links{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
+  .top-links a{color:var(--muted);text-decoration:none;font-size:13px}
+  .top-links a:hover{color:var(--text)}
+
+  .hero{padding:56px 0 30px;text-align:center}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
+    background:rgba(75,130,255,.09);color:#a9c4ff;border-radius:999px;
+    padding:5px 14px;font-size:12.5px;letter-spacing:.3px;margin-bottom:22px
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(66,211,146,.14)}
+  h1{font-size:clamp(30px,5vw,46px);line-height:1.25;margin:0 0 14px;letter-spacing:-.5px}
+  h1 span{background:linear-gradient(100deg,#8fb4ff,#c1a3ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{color:var(--muted);max-width:620px;margin:0 auto 32px;font-size:15px}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:11px;
+    padding:17px 34px;border-radius:14px;font-size:17px;font-weight:700;text-decoration:none;
+    color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 12px 34px rgba(75,130,255,.32);transition:transform .18s,box-shadow .18s;
+    border:0;cursor:pointer
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(75,130,255,.42)}
+  .btn:focus-visible{outline:3px solid #a9c4ff;outline-offset:4px}
+  .btn svg{width:19px;height:19px;flex:none}
+  .sub{margin-top:14px;color:var(--muted);font-size:13px}
+  .alt{margin-top:16px;display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+  .alt a{color:#9fb7e8;font-size:13px;text-decoration:none;border-bottom:1px dashed #3c4a66;padding-bottom:2px}
+  .alt a:hover{color:#fff;border-color:#fff}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:46px 0 0}
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 16px
+  }
+  .card .k{font-size:11.5px;color:var(--muted);letter-spacing:.6px;text-transform:uppercase}
+  .card .v{font-size:16px;font-weight:700;margin-top:7px;word-break:break-all}
+  .card .v.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;font-weight:500;line-height:1.6;color:#c3d3f5}
+  .card .v.green{color:var(--ok)}
+
+  h2{font-size:20px;margin:52px 0 18px;display:flex;align-items:center;gap:10px}
+  h2 .num{
+    width:26px;height:26px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);
+    display:grid;place-items:center;font-size:12px;color:#9fb7e8;font-weight:700
+  }
+  .steps{display:grid;gap:12px}
+  .step{
+    display:flex;gap:16px;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);padding:18px 20px
+  }
+  .step .n{
+    flex:none;width:30px;height:30px;border-radius:50%;background:rgba(75,130,255,.14);
+    border:1px solid rgba(75,130,255,.35);color:#a9c4ff;display:grid;place-items:center;font-weight:700;font-size:14px
+  }
+  .step b{font-size:15px}
+  .step p{margin:4px 0 0;color:var(--muted);font-size:13.5px}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:#c3d3f5
+  }
+  .notice{
+    background:rgba(245,183,74,.07);border:1px solid rgba(245,183,74,.28);
+    border-radius:var(--radius);padding:20px 22px;margin-top:16px
+  }
+  .notice h3{margin:0 0 10px;font-size:15px;color:var(--warn)}
+  .notice ul{margin:0;padding-left:20px;color:#d9d0bc;font-size:13.5px}
+  .notice li{margin:6px 0}
+  .changes{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:8px 22px}
+  .changes li{margin:12px 0;font-size:14px;color:#cdd6e6}
+  .changes b{color:var(--text)}
+  .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .ghost{
+    background:var(--panel-2);color:#c3d3f5;border:1px solid var(--line);border-radius:10px;
+    padding:9px 15px;font-size:13px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s
+  }
+  .ghost:hover{border-color:var(--accent);color:#fff}
+  .ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  footer{
+    margin-top:58px;padding-top:24px;border-top:1px solid var(--line);
+    display:flex;gap:18px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:12.5px
+  }
+  footer a{color:#9fb7e8;text-decoration:none}
+  footer a:hover{color:#fff}
+  #toast{
+    position:fixed;left:50%;bottom:30px;transform:translate(-50%,20px);opacity:0;
+    background:#202a3d;border:1px solid var(--line);color:var(--text);
+    padding:10px 18px;border-radius:10px;font-size:13px;pointer-events:none;transition:.25s;z-index:5
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  @media(max-width:680px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .hero{padding:38px 0 20px}
+    .top-links{width:100%;margin:12px 0 0;justify-content:flex-start}
+    header{flex-wrap:wrap}
+    .btn{width:100%;padding:16px 20px;font-size:16px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">IP</div>
+    <div class="brand">IP 台账管理<small>IP Inventory Management · 飞牛 fnOS</small></div>
+    <nav class="top-links">
+      <a href="https://github.com/12031050/IP-Inventory-Management">源码仓库</a>
+      <a href="https://github.com/12031050/IP-Inventory-Management/releases">版本记录</a>
+      <a href="https://github.com/12031050/IP-Inventory-Management#readme">使用文档</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="pill"><span class="dot"></span> 最新稳定版 · v1.2.7 · 2026-11-12</div>
+    <h1>下载 <span>飞牛 NAS 安装包</span></h1>
+    <p class="lede">一键部署 IP 地址台账系统到飞牛 OS。数据本地存储、离线可用；首次授权后创建管理员帐号，密码加盐入库。</p>
+    <a class="btn" href="https://github.com/12031050/IP-Inventory-Management/releases/latest/download/ipam-1.2.7.fpk" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      下载 ipam-1.2.7.fpk
+    </a>
+    <div class="sub">适用于飞牛 OS（fnOS）NAS · 应用中心「手动安装」· 1.45 MB</div>
+    <div class="alt">
+      <a href="https://github.com/12031050/IP-Inventory-Management/releases/latest">查看 Release 页面与更新日志 →</a>
+      <a href="https://raw.githubusercontent.com/12031050/IP-Inventory-Management/master/packaging/ipam-1.2.7.fpk">备用直链（仓库原文件）</a>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="k">版本</div><div class="v green">v1.2.7</div></div>
+      <div class="card"><div class="k">文件大小</div><div class="v">1.45 MB</div></div>
+      <div class="card"><div class="k">发布日期</div><div class="v">2026-11-12</div></div>
+      <div class="card"><div class="k">MD5 校验</div><div class="v mono">537851d776ec06cbcdf2e1fe7775fb35</div></div>
+    </div>
+    <div class="tools">
+      <button class="ghost" data-copy="https://github.com/12031050/IP-Inventory-Management/releases/latest/download/ipam-1.2.7.fpk">复制下载直链</button>
+      <button class="ghost" data-copy="537851d776ec06cbcdf2e1fe7775fb35">复制 MD5</button>
+      <button class="ghost" data-copy="md5sum ipam-1.2.7.fpk">复制校验命令</button>
+    </div>
+  </section>
+
+  <h2><span class="num">1</span>安装步骤</h2>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div><b>备份现有数据（升级用户必做）</b><p>在 NAS SSH 上执行 <code>find /var/apps/ipam -name ipam.db -exec ls -lh {} +</code> 找到数据库并复制一份。请使用「升级」，不要卸载重装。</p></div></div>
+    <div class="step"><div class="n">2</div><div><b>下载并手动安装</b><p>点上方按钮下载 <code>ipam-1.2.7.fpk</code>，在飞牛「应用中心 → 手动安装」选择该文件。如需校验：Windows 用 <code>Get-FileHash ipam-1.2.7.fpk -Algorithm MD5</code>，Linux/macOS 用 <code>md5sum</code>。</p></div></div>
+    <div class="step"><div class="n">3</div><div><b>从飞牛桌面打开并授权</b><p>不要直连 <code>http://&lt;nas-ip&gt;:28090</code>，该端口仅用于健康检查且不带网关身份头。请从飞牛桌面 / 应用中心图标进入。</p></div></div>
+    <div class="step"><div class="n">4</div><div><b>创建管理员帐号</b><p>首次部署授权后会出现「创建管理员帐号」向导：用户名与关联 NAS 账号由系统自动识别（只读），设置密码并确认后进入主界面。之后也可用账号密码登录。</p></div></div>
+  </div>
+
+  <h2><span class="num">2</span>本版更新</h2>
+  <ul class="changes">
+    <li><b>新增创建管理员向导</b>：首次授权强制设置密码，含确认密码与可见性切换。</li>
+    <li><b>密码加固</b>：PBKDF2-SHA256 加盐哈希存储，旧版明文密码登录时自动升级。</li>
+    <li><b>修复登录漏洞</b>：堵住空密码任意登录；接口不再下发密码；全量写回不会清空密码或改写超管标记。</li>
+    <li><b>收紧 CORS</b>：移除通配来源与网关身份头放行。</li>
+    <li><b>回归测试</b>：新增 <code>scripts/verify-setup-admin.py</code>，28 项端到端测试通过。</li>
+  </ul>
+
+  <div class="notice">
+    <h3>⚠️ 升级 / 卸载注意</h3>
+    <ul>
+      <li>卸载脚本会清理 <code>TRIM_PKGVAR</code> 数据目录 —— <b>卸载重装会丢失台账数据</b>，升级不会。</li>
+      <li>从旧版本升级且超管原本是空密码时，会被引到「设置管理员密码」，属预期行为。</li>
+      <li>业务数据保存在 NAS 的 <code>ipam.db</code> 中，不会随安装包分发；安装包本身只有约 1.45 MB。</li>
+      <li>当前所有 <code>/api/*</code> 尚无服务端会话校验，请确保 28090 端口不对公网暴露。</li>
+    </ul>
+  </div>
+
+  <footer>
+    <span>© IP 台账管理 · 飞牛 OS 应用</span>
+    <a href="https://github.com/12031050/IP-Inventory-Management">GitHub 仓库</a>
+    <a href="https://github.com/12031050/IP-Inventory-Management/releases/latest">全部版本</a>
+    <a href="https://github.com/12031050/IP-Inventory-Management/blob/master/packaging/ipam-1.2.7.fpk">仓库内安装包</a>
+  </footer>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+  const toast = document.getElementById('toast');
+  let timer;
+  function show(msg){
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(timer); timer = setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const text = btn.getAttribute('data-copy');
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (_) {}
+        ta.remove();
+      }
+      show('已复制：' + (text.length > 46 ? text.slice(0, 43) + '…' : text));
+    });
+  });
+</script>
+</body>
+</html>
