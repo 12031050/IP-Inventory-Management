@@ -8,8 +8,8 @@ build/
 # 压缩 / 打包产物
 *.tgz
 *.fpk
-# FPK 产物需要随仓库分发，故放开 packaging 下一级的 fpk
-!packaging/*.fpk
+# 仓库只保留当前最新安装包，历史版本一律不入库
+!packaging/ipam-1.2.7.fpk
 
 # ===== 环境与密钥 =====
 .env
